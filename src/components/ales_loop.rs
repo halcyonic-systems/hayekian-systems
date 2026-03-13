@@ -7,7 +7,7 @@ const VW: f32 = 600.0;
 const VH: f32 = 400.0;
 
 /// Process box dimensions
-const BOX_W: f32 = 120.0;
+const BOX_W: f32 = 148.0;
 const BOX_H: f32 = 52.0;
 
 /// Box centers: E(top-right), S(top-left), A(bottom-left), L(bottom-right)
@@ -191,7 +191,24 @@ pub fn AlesLoop(
                             activation * 100.0
                         );
 
-                        let name_size = if hampered { "12" } else { "13" };
+                        // Scale font to fit box width with padding
+                        let label_len = cfg.process_labels[i].len();
+                        let name_size = if label_len > 18 {
+                            "10"
+                        } else if label_len > 12 || hampered {
+                            "11.5"
+                        } else {
+                            "13"
+                        };
+
+                        let notation_len = cfg.process_notation[i].len();
+                        let notation_size = if notation_len > 24 {
+                            "8.5"
+                        } else if notation_len > 18 {
+                            "9.5"
+                        } else {
+                            "10.5"
+                        };
 
                         boxes.push(view! {
                             <g>
@@ -208,7 +225,7 @@ pub fn AlesLoop(
                                 <text class="process-name" x=cx y=cy - 8.0 font-size=name_size>
                                     {cfg.process_labels[i]}
                                 </text>
-                                <text class="process-notation" x=cx y=cy + 12.0>
+                                <text class="process-notation" x=cx y=cy + 12.0 font-size=notation_size>
                                     {cfg.process_notation[i]}
                                 </text>
                             </g>
@@ -223,8 +240,10 @@ pub fn AlesLoop(
                     let cfg = domain_config.get();
                     let lm = light_mode.get();
                     let k = s.knowledge_quality;
-                    let kw = 100.0_f32;
+                    let label_len = cfg.knowledge_label.len();
+                    let kw = if label_len > 14 { 126.0_f32 } else { 110.0_f32 };
                     let kh = 40.0_f32;
+                    let k_font = if label_len > 16 { "9.5" } else { "11" };
                     // Positioned on the right side between E and L
                     let kx = centers[0].0;
                     let ky = (centers[0].1 + centers[3].1) / 2.0;
@@ -250,7 +269,7 @@ pub fn AlesLoop(
                                 stroke=ka.to_css()
                                 stroke-width="2"
                             />
-                            <text class="knowledge-label" x=kx y=ky - 6.0>
+                            <text class="knowledge-label" x=kx y=ky - 6.0 font-size=k_font>
                                 {cfg.knowledge_label}
                             </text>
                             <text class="knowledge-pct" x=kx y=ky + 10.0 fill=ka.to_css()>
