@@ -126,10 +126,10 @@ pub fn abstract_system() -> DomainConfig {
             "Updating of the internal model\nbased on sensory input and\nthe results of action.",
         ],
         process_notation: [
-            "E(K, I) \u{2192} D",
-            "S(D, K, I) \u{2192} P",
-            "A(P, K, I) \u{2192} O, C",
-            "L(C, O, K, I) \u{2192} K",
+            "K + Input \u{2192} Dispositions",
+            "Dispositions \u{2192} Plans",
+            "Plans \u{2192} Output",
+            "Outcomes \u{2192} K",
         ],
 
         flow_labels: ["D", "P", "O, C", "K"],

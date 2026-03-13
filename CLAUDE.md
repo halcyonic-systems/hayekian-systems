@@ -9,7 +9,9 @@ cargo run              # Launch the app (debug build)
 cargo build --release  # Rebuild optimized binary (needed after code changes)
 ```
 
-**Desktop launcher**: `~/Desktop/Hayekian Systems.app` — double-click or Dock it. Points to `target/release/hayekian-systems`. After code changes, run `cargo build --release` to update the binary.
+**Live web app**: https://halcyonic.systems/hayekian-systems/ (auto-deploys on push to main)
+**Desktop launcher**: `~/Desktop/Hayekian Systems.app` — double-click or Dock it. After code changes, run `cargo build --release` to update.
+**Repo**: https://github.com/halcyonic-systems/hayekian-systems
 
 **Theme**: Light (cream) and dark (slate) modes with toggle button at top-left of controls panel. Default is light/cream. All UI colors (process boxes, text, flow labels, knowledge box, env indicators) adapt to the active theme via `light_mode` bool passed through the UI layer.
 

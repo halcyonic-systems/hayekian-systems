@@ -100,7 +100,7 @@ impl Default for HayekianApp {
         let domain = Domain::Abstract;
         Self {
             state: SystemState::default(),
-            running: true,
+            running: false,
             theory_panel_open: false,
             domain,
             domain_config: domain.config(),
@@ -178,7 +178,7 @@ impl eframe::App for HayekianApp {
                         self.domain_config.chapter, self.domain_config.figure
                     ))
                     .small()
-                    .color(if self.light_mode { egui::Color32::from_rgb(100, 100, 120) } else { egui::Color32::from_rgb(160, 160, 180) }),
+                    .color(if self.light_mode { egui::Color32::from_rgb(60, 60, 78) } else { egui::Color32::from_rgb(160, 160, 180) }),
                 );
 
                 ui.add_space(8.0);
@@ -192,42 +192,60 @@ impl eframe::App for HayekianApp {
                     &self.domain_config,
                 );
 
-                ui.add_space(8.0);
-                if ui.button("↺ Reset Simulation").clicked() {
-                    self.state.reset();
-                }
             });
 
-        // Right panel: dashboard
-        egui::SidePanel::right("dashboard_panel")
-            .min_width(220.0)
-            .max_width(260.0)
-            .show(ctx, |ui| {
-                ui.add_space(8.0);
-                dashboard::system_dashboard(ui, &self.state, &self.domain_config, self.light_mode);
-            });
-
-        // Central area: loop visualization
+        // Central area: loop + metrics + chart
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.add_space(8.0);
+            // Citation pinned at very bottom (rendered first in bottom-up pass)
+            let cite_color = if self.light_mode {
+                egui::Color32::from_rgb(90, 85, 75)
+            } else {
+                egui::Color32::from_rgb(120, 120, 140)
+            };
+
+            // Use a top-down layout for the main content
+            ui.add_space(4.0);
+
+            // Loop diagram — takes proportional space
             loop_view::ales_loop(ui, &self.state, &self.domain_config, self.light_mode);
 
-            // Collapsible theory panel at bottom
-            ui.add_space(8.0);
+            ui.add_space(6.0);
             ui.separator();
             ui.add_space(4.0);
+
+            // Horizontal metrics strip
+            dashboard::metrics_strip(ui, &self.state, &self.domain_config, self.light_mode);
+
+            ui.add_space(6.0);
+
+            // Chart — fills remaining space minus citation and theory
+            dashboard::knowledge_chart(ui, &self.state, self.light_mode);
+
+            ui.add_space(4.0);
+
+            // Collapsible theory panel
             let theory_title = format!(
                 "Theory \u{2014} McQuade {}: {}",
                 self.domain_config.chapter, self.domain_config.name
             );
             egui::CollapsingHeader::new(
                 egui::RichText::new(theory_title)
-                    .color(if self.light_mode { egui::Color32::from_rgb(100, 100, 120) } else { egui::Color32::from_rgb(160, 160, 180) }),
+                    .color(if self.light_mode { egui::Color32::from_rgb(60, 60, 78) } else { egui::Color32::from_rgb(160, 160, 180) }),
             )
             .default_open(self.theory_panel_open)
             .show(ui, |ui| {
                 self.theory_panel_open = true;
                 theory_panel(ui, &self.domain_config, self.light_mode);
+            });
+
+            // Source citation
+            ui.add_space(4.0);
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+                ui.label(
+                    egui::RichText::new("Based on McQuade & Butos, Anticipatory Systems in a Hayekian Framework (Routledge)")
+                        .italics()
+                        .color(cite_color),
+                );
             });
         });
     }
@@ -235,7 +253,7 @@ impl eframe::App for HayekianApp {
 
 /// Theory panel content, adapting to the current domain.
 fn theory_panel(ui: &mut egui::Ui, config: &DomainConfig, light_mode: bool) {
-    let dim = if light_mode { egui::Color32::from_rgb(100, 100, 120) } else { egui::Color32::from_rgb(160, 160, 180) };
+    let dim = if light_mode { egui::Color32::from_rgb(60, 60, 78) } else { egui::Color32::from_rgb(160, 160, 180) };
 
     ui.label(
         egui::RichText::new(format!(

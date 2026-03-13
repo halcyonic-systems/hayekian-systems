@@ -6,9 +6,11 @@ use crate::domains::{DomainConfig, DomainPalette};
 /// Layout matches McQuade's figures: rectangular process boxes,
 /// labeled intermediate arrows, Knowledge on the L→E edge.
 pub fn ales_loop(ui: &mut Ui, state: &SystemState, config: &DomainConfig, light_mode: bool) {
+    // Reserve space for metrics strip (~50px), chart (~140px), theory + citation (~60px)
+    let max_loop_height = (ui.available_height() - 260.0).max(200.0);
     let desired_size = Vec2::new(
         ui.available_width(),
-        ui.available_height().min(ui.available_width() * 0.85),
+        max_loop_height.min(ui.available_width() * 0.65),
     );
     let (rect, response) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
     let painter = ui.painter_at(rect);
@@ -24,10 +26,10 @@ pub fn ales_loop(ui: &mut Ui, state: &SystemState, config: &DomainConfig, light_
 
     // System boundary box
     // Semantic colors for light/dark mode
-    let text_primary = if light_mode { Color32::from_rgb(40, 40, 50) } else { Color32::WHITE };
-    let text_secondary = if light_mode { Color32::from_rgb(90, 95, 110) } else { Color32::from_rgb(180, 190, 200) };
-    let boundary_color = if light_mode { Color32::from_rgb(180, 170, 155) } else { Color32::from_rgb(80, 82, 100) };
-    let env_label_color = if light_mode { Color32::from_rgb(30, 120, 170) } else { Color32::from_rgb(100, 180, 220) };
+    let text_primary = if light_mode { Color32::from_rgb(30, 30, 40) } else { Color32::WHITE };
+    let text_secondary = if light_mode { Color32::from_rgb(55, 58, 72) } else { Color32::from_rgb(180, 190, 200) };
+    let boundary_color = if light_mode { Color32::from_rgb(165, 155, 140) } else { Color32::from_rgb(80, 82, 100) };
+    let env_label_color = if light_mode { Color32::from_rgb(20, 100, 150) } else { Color32::from_rgb(100, 180, 220) };
 
     let boundary = Rect::from_center_size(center, Vec2::new(rect.width() * 0.88, rect.height() * 0.85));
     painter.rect_stroke(boundary, 2.0, egui::Stroke::new(1.0, boundary_color), StrokeKind::Inside);
@@ -74,9 +76,9 @@ pub fn ales_loop(ui: &mut Ui, state: &SystemState, config: &DomainConfig, light_
             label_pos,
             egui::Align2::CENTER_CENTER,
             config.flow_labels[i],
-            egui::FontId::proportional(10.0),
+            egui::FontId::proportional(11.0),
             if light_mode {
-                Color32::from_rgba_premultiplied(80, 70, 40, alpha)
+                Color32::from_rgba_premultiplied(60, 50, 25, alpha)
             } else {
                 Color32::from_rgba_premultiplied(200, 200, 160, alpha)
             },
@@ -110,16 +112,16 @@ pub fn ales_loop(ui: &mut Ui, state: &SystemState, config: &DomainConfig, light_
             Pos2::new(bc.x, bc.y - 8.0),
             egui::Align2::CENTER_CENTER,
             config.process_labels[i],
-            egui::FontId::new(13.0, egui::FontFamily::Proportional),
+            egui::FontId::new(14.0, egui::FontFamily::Proportional),
             text_primary,
         );
 
         // Functional notation (domain-specific)
         painter.text(
-            Pos2::new(bc.x, bc.y + 10.0),
+            Pos2::new(bc.x, bc.y + 12.0),
             egui::Align2::CENTER_CENTER,
             config.process_notation[i],
-            egui::FontId::proportional(9.0),
+            egui::FontId::proportional(10.5),
             text_secondary,
         );
 
@@ -154,14 +156,14 @@ pub fn ales_loop(ui: &mut Ui, state: &SystemState, config: &DomainConfig, light_
         Pos2::new(k_center.x, k_center.y - 6.0),
         egui::Align2::CENTER_CENTER,
         config.knowledge_label,
-        egui::FontId::new(11.0, egui::FontFamily::Proportional),
+        egui::FontId::new(12.0, egui::FontFamily::Proportional),
         text_primary,
     );
     painter.text(
         Pos2::new(k_center.x, k_center.y + 8.0),
         egui::Align2::CENTER_CENTER,
         format!("{:.0}%", k * 100.0),
-        egui::FontId::proportional(10.0),
+        egui::FontId::proportional(11.0),
         config.palette.knowledge_accent,
     );
 
@@ -184,25 +186,7 @@ pub fn ales_loop(ui: &mut Ui, state: &SystemState, config: &DomainConfig, light_
         }
     }
 
-    // Environmental Input indicator
-    let env_x = boundary.right() + 12.0;
-    let env_y = center.y;
-    painter.text(
-        Pos2::new(env_x, env_y - 10.0),
-        egui::Align2::LEFT_CENTER,
-        "Env",
-        egui::FontId::proportional(11.0),
-        env_label_color,
-    );
-    painter.text(
-        Pos2::new(env_x, env_y + 4.0),
-        egui::Align2::LEFT_CENTER,
-        "Input (I)",
-        egui::FontId::proportional(10.0),
-        env_label_color,
-    );
-
-    // Env input arrow
+    // === External feedback loop: Output → Environment → Input ===
     let coupling = state.params.environmental_coupling;
     let env_alpha = (coupling * 200.0 + 55.0).min(255.0) as u8;
     let env_color = if light_mode {
@@ -210,14 +194,49 @@ pub fn ales_loop(ui: &mut Ui, state: &SystemState, config: &DomainConfig, light_
     } else {
         Color32::from_rgba_premultiplied(100, 180, 220, env_alpha)
     };
-    let env_start = Pos2::new(env_x - 4.0, env_y);
-    painter.line_segment(
-        [env_start, Pos2::new(boundary.right(), env_y)],
-        egui::Stroke::new(1.0 + coupling * 1.5, env_color),
+    let env_stroke = egui::Stroke::new(1.5 + coupling * 1.0, env_color);
+    let env_margin = 18.0; // gap outside boundary
+
+    // 1. Output arrow from Action (bottom-left) going LEFT out of boundary
+    let output_start = Pos2::new(box_centers[2].x - half_box.x, box_centers[2].y);
+    let output_exit = Pos2::new(boundary.left() - env_margin, box_centers[2].y);
+    painter.line_segment([output_start, output_exit], env_stroke);
+    draw_arrowhead(&painter, output_start, output_exit, env_color, 6.0);
+
+    // "Output (O)" label
+    painter.text(
+        Pos2::new(output_exit.x - 4.0, output_exit.y - 10.0),
+        egui::Align2::RIGHT_BOTTOM,
+        "Output (O)",
+        egui::FontId::proportional(10.0),
+        env_label_color,
+    );
+
+    // 2. Path down the left side, across the bottom to midpoint between A and L
+    let corner_bottom_left = Pos2::new(boundary.left() - env_margin, boundary.bottom() + env_margin);
+    // Input enters between A (bottom-left) and L (bottom-right)
+    let input_x = (box_centers[2].x + box_centers[3].x) * 0.5;
+    let corner_bottom_mid = Pos2::new(input_x, boundary.bottom() + env_margin);
+
+    painter.line_segment([output_exit, corner_bottom_left], env_stroke);
+    painter.line_segment([corner_bottom_left, corner_bottom_mid], env_stroke);
+
+    // 3. Input arrow pointing UP into the system between A and L
+    let env_entry = Pos2::new(input_x, boundary.bottom());
+    painter.line_segment([corner_bottom_mid, env_entry], env_stroke);
+    draw_arrowhead(&painter, corner_bottom_mid, env_entry, env_color, 6.0);
+
+    // "Env Input (I)" label below the entry point
+    painter.text(
+        Pos2::new(input_x + 14.0, boundary.bottom() + env_margin + 2.0),
+        egui::Align2::LEFT_CENTER,
+        "Env Input (I)",
+        egui::FontId::proportional(11.0),
+        env_label_color,
     );
 
     // Env tooltip
-    let env_rect = Rect::from_min_size(Pos2::new(env_x - 8.0, env_y - 16.0), Vec2::new(60.0, 32.0));
+    let env_rect = Rect::from_center_size(Pos2::new(input_x, boundary.bottom() + env_margin), Vec2::new(90.0, 24.0));
     if let Some(pointer) = response.hover_pos() {
         if env_rect.contains(pointer) {
             egui::show_tooltip_at_pointer(ui.ctx(), LayerId::new(Order::Tooltip, ui.id()), ui.id().with("env"), |ui| {

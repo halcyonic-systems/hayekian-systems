@@ -18,10 +18,10 @@ pub fn market_system() -> DomainConfig {
             "Transactions between buyers\nand sellers affected by\npreferences, expectations,\nand availabilities.",
         ],
         process_notation: [
-            "E(K, I) \u{2192} Proposals",
-            "S(D, K, I) \u{2192} Plans",
-            "A(P, K, I) \u{2192} Results, Output",
-            "L(C, O, K, I) \u{2192} K",
+            "Prices + Input \u{2192} Proposals",
+            "Proposals \u{2192} Plans",
+            "Plans \u{2192} Output",
+            "Outcomes \u{2192} Prices",
         ],
 
         flow_labels: ["Proposals", "Plans", "Results", "K"],
@@ -60,10 +60,10 @@ pub fn firm_system() -> DomainConfig {
             "Transactions sharing information\nabout customers, suppliers,\nproducts, and the market\nand social environment.",
         ],
         process_notation: [
-            "E(K, I) \u{2192} Proposals",
-            "S(D, K, I) \u{2192} Plans",
-            "A(P, K, I) \u{2192} Results, Output",
-            "L(C, O, K, I) \u{2192} K",
+            "Model + Input \u{2192} Proposals",
+            "Proposals \u{2192} Plans",
+            "Plans \u{2192} Output",
+            "Outcomes \u{2192} Model",
         ],
 
         flow_labels: ["Proposals", "Plans", "Results", "K"],
@@ -103,10 +103,10 @@ pub fn free_banking_system() -> DomainConfig {
             "Interbank clearing and associated\nassessments of member bank\nfinancial stability.",
         ],
         process_notation: [
-            "E(K, I) \u{2192} Proposals",
-            "S(D, K, I) \u{2192} Plans",
-            "A(P, K, I) \u{2192} Results, Output",
-            "L(C, O, K, I) \u{2192} K",
+            "Reserves + Input \u{2192} Proposals",
+            "Proposals \u{2192} Plans",
+            "Plans \u{2192} Output",
+            "Clearings \u{2192} Reserves",
         ],
 
         flow_labels: ["Proposals", "Plans", "Results", "K"],
