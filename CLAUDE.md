@@ -34,7 +34,9 @@ src/
 │   └── system.rs        # SystemState, ALES process enum, simulation step
 ├── domains/
 │   ├── mod.rs           # DomainConfig, DomainPalette, abstract_system(), palette functions
-│   └── market.rs        # Market (Fig 6.1), Firm (Fig 6.2), Free Banking (Fig 6.3)
+│   ├── market.rs        # Market (Fig 6.1), Firm (Fig 6.2), Free Banking (Fig 6.3)
+│   ├── science.rs       # Science (Fig 7.1)
+│   └── government.rs    # Legislature (Fig 8.1), Bureaucracy (Fig 8.2)
 └── ui/
     ├── mod.rs
     ├── loop_view.rs     # Loop diagram (rectangular boxes, palette-driven, light/dark aware)
@@ -63,6 +65,9 @@ Each domain is a `DomainConfig` (labels, descriptions, tooltips, palette) that p
 | Market (Ch 6) | Fig 6.1 | Green | Growth, exchange, money |
 | Firm (Ch 6) | Fig 6.2 | Teal/cyan | Corporate, contained |
 | Free Banking (Ch 6) | Fig 6.3 | Gold/amber | Currency, reserves |
+| Science (Ch 7) | Fig 7.1 | Purple/violet | Inquiry, knowledge |
+| Legislature (Ch 8) | Fig 8.1 | Red/crimson | Authority, law |
+| Bureaucracy (Ch 8) | Fig 8.2 | Muted brown | Institutional, constrained |
 
 ### Adding New Domains
 
@@ -89,9 +94,6 @@ When implementing a new chapter's domain:
 
 | Domain | Chapter | Suggested Palette |
 |--------|---------|-------------------|
-| Science | Ch 7 | Purple/violet — inquiry, knowledge |
-| Legislature | Ch 8 | Red/crimson — authority, law |
-| Bureaucracy | Ch 8 | Muted brown/grey — institutional, constrained |
 | Big Player | Ch 9-10 | Orange/warning — intervention, disruption |
 
 ## Chapter Build Order
@@ -102,8 +104,8 @@ Each chapter = a working app on its own. Review gate between each.
 |----|-----------|--------|-------------|
 | 1 | Ch 5 (Biological Systems Theory) | **Done** | Abstract ALES loop, 4 parameters, knowledge indicator |
 | 2 | Ch 6 (Economic Systems) | **Done** | Market/Firm/Banking domains, domain selector, color palettes |
-| 3 | Ch 7 (Science Systems) | Planned | Science labels, discipline anchor selector |
-| 4 | Ch 8 (Government Systems) | Planned | Legislature + ratchet effect + bureaucracy |
+| 3 | Ch 7 (Science Systems) | **Done** | Science domain, "Probing" output label, purple palette |
+| 4 | Ch 8 (Government Systems) | **Done** | Legislature + bureaucracy, hampered process visuals, output_label field |
 | 5 | Ch 9-10 (Interactions/State-Sponsored) | Planned | Big Player coupling across domains |
 | 6 | Ch 11 (Hayekian Systems) | Planned | Side-by-side comparison dashboard |
 | 7 | Real-world mapping | Planned | Historical scenarios (2008, climate science, etc.) |

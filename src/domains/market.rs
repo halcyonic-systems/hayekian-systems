@@ -39,6 +39,9 @@ pub fn market_system() -> DomainConfig {
 
         coupling_label: "Anchor to Environment",
         coupling_tooltip: "\"The market system is firmly anchored to the environment in that its production processes are sensitive to real changes in resource availabilities, and such changes are reflected in changes to the price structure.\" \u{2014} Ch 6, p.87",
+
+        output_label: "Output (O)",
+        hampered_processes: [false; 4],
     }
 }
 
@@ -81,6 +84,9 @@ pub fn firm_system() -> DomainConfig {
 
         coupling_label: "Anchor to Environment",
         coupling_tooltip: "The firm's anchor is market feedback \u{2014} profitability as a lagging indicator of successful adaptation, plus direct customer and supplier feedback. Bureaucratic hierarchies can attenuate this signal. \u{2014} Ch 6",
+
+        output_label: "Output (O)",
+        hampered_processes: [false; 4],
     }
 }
 
@@ -124,5 +130,8 @@ pub fn free_banking_system() -> DomainConfig {
 
         coupling_label: "Anchor to Environment",
         coupling_tooltip: "The clearing process generates knowledge of the banking system and the monetary environment. Overissue leads to adverse clearings and reserve loss \u{2014} direct negative feedback. \"Even in the unlikely case of overissue by all banks in concert, there will be negative feedback.\" \u{2014} Ch 6",
+
+        output_label: "Output (O)",
+        hampered_processes: [false; 4],
     }
 }

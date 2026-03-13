@@ -102,17 +102,33 @@ pub fn ales_loop(ui: &mut Ui, state: &SystemState, config: &DomainConfig, light_
     for (i, &bc) in box_centers.iter().enumerate() {
         let activation = state.process_activation[i];
         let bg = node_color(activation, &config.palette, light_mode);
+        let hampered = config.hampered_processes[i];
         let box_rect = Rect::from_center_size(bc, Vec2::new(box_w, box_h));
 
         painter.rect_filled(box_rect, 3.0, bg);
-        painter.rect_stroke(box_rect, 3.0, egui::Stroke::new(1.5, config.palette.accent), StrokeKind::Inside);
 
-        // Process name (domain-specific)
+        if hampered {
+            // Dashed border for hampered processes (externally constrained)
+            let stroke_color = config.palette.accent;
+            let dash_len = 5.0;
+            let gap_len = 3.0;
+            let corners = [box_rect.left_top(), box_rect.right_top(), box_rect.right_bottom(), box_rect.left_bottom()];
+            for edge in 0..4 {
+                let p0 = corners[edge];
+                let p1 = corners[(edge + 1) % 4];
+                draw_dashed_line(&painter, p0, p1, stroke_color, 1.5, dash_len, gap_len);
+            }
+        } else {
+            painter.rect_stroke(box_rect, 3.0, egui::Stroke::new(1.5, config.palette.accent), StrokeKind::Inside);
+        }
+
+        // Process name — slightly smaller font for hampered processes
+        let name_size = if hampered { 12.0 } else { 14.0 };
         painter.text(
             Pos2::new(bc.x, bc.y - 8.0),
             egui::Align2::CENTER_CENTER,
             config.process_labels[i],
-            egui::FontId::new(14.0, egui::FontFamily::Proportional),
+            egui::FontId::new(name_size, egui::FontFamily::Proportional),
             text_primary,
         );
 
@@ -203,11 +219,11 @@ pub fn ales_loop(ui: &mut Ui, state: &SystemState, config: &DomainConfig, light_
     painter.line_segment([output_start, output_exit], env_stroke);
     draw_arrowhead(&painter, output_start, output_exit, env_color, 6.0);
 
-    // "Output (O)" label
+    // Output label (domain-specific: "Output (O)", "Probing", "Political Advertising", etc.)
     painter.text(
         Pos2::new(output_exit.x - 4.0, output_exit.y - 10.0),
         egui::Align2::RIGHT_BOTTOM,
-        "Output (O)",
+        config.output_label,
         egui::FontId::proportional(10.0),
         env_label_color,
     );
@@ -325,6 +341,24 @@ fn node_color(activation: f32, palette: &DomainPalette, light_mode: bool) -> Col
             (dim.g() as f32 + a * (bright.g() as f32 - dim.g() as f32) * 0.5) as u8,
             (dim.b() as f32 + a * (bright.b() as f32 - dim.b() as f32) * 0.5) as u8,
         )
+    }
+}
+
+/// Draw a dashed line between two points.
+fn draw_dashed_line(painter: &egui::Painter, from: Pos2, to: Pos2, color: Color32, width: f32, dash: f32, gap: f32) {
+    let dx = to.x - from.x;
+    let dy = to.y - from.y;
+    let total = (dx * dx + dy * dy).sqrt();
+    if total < 0.1 { return; }
+    let dir_x = dx / total;
+    let dir_y = dy / total;
+    let mut t = 0.0;
+    while t < total {
+        let seg_end = (t + dash).min(total);
+        let p0 = Pos2::new(from.x + dir_x * t, from.y + dir_y * t);
+        let p1 = Pos2::new(from.x + dir_x * seg_end, from.y + dir_y * seg_end);
+        painter.line_segment([p0, p1], egui::Stroke::new(width, color));
+        t = seg_end + gap;
     }
 }
 

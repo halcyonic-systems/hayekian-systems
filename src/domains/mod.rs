@@ -1,4 +1,6 @@
 pub mod market;
+pub mod science;
+pub mod government;
 
 use egui::Color32;
 
@@ -60,6 +62,12 @@ pub struct DomainConfig {
     pub coupling_label: &'static str,
     /// Tooltip for the coupling parameter in this domain
     pub coupling_tooltip: &'static str,
+
+    /// Label for the external output arrow (default "Output (O)", Science = "Probing", etc.)
+    pub output_label: &'static str,
+    /// Which processes are "hampered" by external constraint (drawn with dashed border).
+    /// Bureaucracy has Innovation and Judgment hampered. Default: all false.
+    pub hampered_processes: [bool; 4],
 }
 
 /// Blue-grey palette — neutral, theoretical (Ch 5 abstract template).
@@ -110,6 +118,42 @@ pub fn palette_banking() -> DomainPalette {
     }
 }
 
+/// Purple/violet palette — inquiry, knowledge (Ch 7 science).
+pub fn palette_science() -> DomainPalette {
+    DomainPalette {
+        accent: Color32::from_rgb(160, 120, 200),
+        accent_dim: Color32::from_rgb(55, 40, 75),
+        knowledge_accent: Color32::from_rgb(180, 140, 220),
+        flow_healthy: Color32::from_rgb(140, 120, 210),
+        flow_warning: Color32::from_rgb(200, 180, 80),
+        flow_danger: Color32::from_rgb(200, 80, 80),
+    }
+}
+
+/// Red/crimson palette — authority, law (Ch 8 legislature).
+pub fn palette_legislature() -> DomainPalette {
+    DomainPalette {
+        accent: Color32::from_rgb(200, 90, 90),
+        accent_dim: Color32::from_rgb(70, 35, 35),
+        knowledge_accent: Color32::from_rgb(210, 110, 110),
+        flow_healthy: Color32::from_rgb(200, 100, 100),
+        flow_warning: Color32::from_rgb(200, 160, 80),
+        flow_danger: Color32::from_rgb(180, 60, 60),
+    }
+}
+
+/// Muted brown/grey palette — institutional, constrained (Ch 8 bureaucracy).
+pub fn palette_bureaucracy() -> DomainPalette {
+    DomainPalette {
+        accent: Color32::from_rgb(160, 140, 110),
+        accent_dim: Color32::from_rgb(55, 48, 38),
+        knowledge_accent: Color32::from_rgb(170, 150, 120),
+        flow_healthy: Color32::from_rgb(160, 145, 115),
+        flow_warning: Color32::from_rgb(180, 150, 80),
+        flow_danger: Color32::from_rgb(180, 80, 80),
+    }
+}
+
 /// Abstract anticipatory system template (Ch 5, Figure 5.2).
 pub fn abstract_system() -> DomainConfig {
     DomainConfig {
@@ -147,5 +191,8 @@ pub fn abstract_system() -> DomainConfig {
 
         coupling_label: "Environmental Coupling",
         coupling_tooltip: "How strongly the system's processes are coupled to environmental input. \"The system's input from the environment may be processed within the system to confront, and perhaps modify, the model.\" \u{2014} Ch 5",
+
+        output_label: "Output (O)",
+        hampered_processes: [false; 4],
     }
 }

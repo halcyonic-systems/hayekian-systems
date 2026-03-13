@@ -57,14 +57,20 @@ enum Domain {
     Market,
     Firm,
     FreeBanking,
+    Science,
+    Legislature,
+    Bureaucracy,
 }
 
 impl Domain {
-    const ALL: [Domain; 4] = [
+    const ALL: [Domain; 7] = [
         Domain::Abstract,
         Domain::Market,
         Domain::Firm,
         Domain::FreeBanking,
+        Domain::Science,
+        Domain::Legislature,
+        Domain::Bureaucracy,
     ];
 
     fn label(&self) -> &'static str {
@@ -73,6 +79,9 @@ impl Domain {
             Domain::Market => "Market (Ch 6, Fig 6.1)",
             Domain::Firm => "Firm (Ch 6, Fig 6.2)",
             Domain::FreeBanking => "Free Banking (Ch 6, Fig 6.3)",
+            Domain::Science => "Science (Ch 7, Fig 7.1)",
+            Domain::Legislature => "Legislature (Ch 8, Fig 8.1)",
+            Domain::Bureaucracy => "Bureaucracy (Ch 8, Fig 8.2)",
         }
     }
 
@@ -82,6 +91,9 @@ impl Domain {
             Domain::Market => domains::market::market_system(),
             Domain::Firm => domains::market::firm_system(),
             Domain::FreeBanking => domains::market::free_banking_system(),
+            Domain::Science => domains::science::science_system(),
+            Domain::Legislature => domains::government::legislature_system(),
+            Domain::Bureaucracy => domains::government::bureaucracy_system(),
         }
     }
 }
