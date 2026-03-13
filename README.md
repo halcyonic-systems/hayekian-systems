@@ -1,6 +1,6 @@
 # Hayekian Anticipatory Systems Explorer
 
-Interactive visualization of the anticipatory systems framework from McQuade & Butos, *Anticipatory Systems in a Hayekian Framework* (Routledge). Users manipulate four structural parameters of an ALES loop and observe how knowledge accumulates or degrades across seven domain instantiations.
+Interactive visualization of the anticipatory systems framework from McQuade & Butos, *Hayekian Systems: Research into the Structure of Social Interaction* (Routledge). Users manipulate four structural parameters of an ALES loop and observe how knowledge accumulates or degrades across seven domain instantiations.
 
 **Live demo:** [halcyonic.systems/hayekian-systems](https://halcyonic.systems/hayekian-systems/)
 

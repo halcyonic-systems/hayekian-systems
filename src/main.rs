@@ -124,7 +124,7 @@ fn App() -> impl IntoView {
                             target="_blank"
                             rel="noopener"
                         >
-                            <em>"Anticipatory Systems in a Hayekian Framework"</em>
+                            <em>"Hayekian Systems: Research into the Structure of Social Interaction"</em>
                         </a>
                         " (Routledge)"
                     </div>
