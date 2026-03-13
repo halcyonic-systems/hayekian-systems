@@ -325,16 +325,40 @@ pub fn AlesLoop(
                                 class="env-path" style=env_style.clone()
                                 marker-end="url(#arrow-env)"
                             />
-                            // Output label
+                            // Output label with domain-specific subtitle
                             <text
                                 x=out_x2 - 4.0
-                                y=out_y - 10.0
+                                y=out_y - 14.0
                                 class="env-label"
                                 text-anchor="end"
                                 font-size="10"
                             >
                                 {cfg.output_label}
                             </text>
+                            {if cfg.output_label != "Output (O)" { None } else {
+                                // Show domain-specific subtitle for generic "Output (O)" labels
+                                let subtitle = match cfg.name {
+                                    "Market System" => "Goods & Services",
+                                    "Firm" => "Products & Services",
+                                    "Free Banking System" => "Loans & Services",
+                                    "Bureaucracy" => "Agency Services",
+                                    _ => "",
+                                };
+                                if subtitle.is_empty() { None } else {
+                                    Some(view! {
+                                        <text
+                                            x=out_x2 - 4.0
+                                            y=out_y - 3.0
+                                            class="env-label"
+                                            text-anchor="end"
+                                            font-size="8.5"
+                                            opacity="0.7"
+                                        >
+                                            {subtitle}
+                                        </text>
+                                    })
+                                }
+                            }}
 
                             // Path down left side, across bottom
                             <polyline
@@ -356,16 +380,29 @@ pub fn AlesLoop(
                                 marker-end="url(#arrow-env)"
                             />
 
-                            // Env Input label
+                            // Env Input label — domain-specific
                             <text
                                 x=entry_x + 14.0
-                                y=corner_bm_y + 2.0
+                                y=corner_bm_y - 2.0
                                 class="env-label"
-                                font-size="11"
+                                font-size="10"
                             >
-                                <title>{tooltip}</title>
-                                "Env Input (I)"
+                                {cfg.env_input_label}
                             </text>
+                            {if cfg.env_input_label == "Env Input (I)" { None } else {
+                                // Show generic "(I)" below the specific label
+                                Some(view! {
+                                    <text
+                                        x=entry_x + 14.0
+                                        y=corner_bm_y + 10.0
+                                        class="env-label"
+                                        font-size="8.5"
+                                        opacity="0.7"
+                                    >
+                                        "Environmental Input"
+                                    </text>
+                                })
+                            }}
                         </g>
                     }
                 }}

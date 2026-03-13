@@ -71,6 +71,10 @@ pub struct DomainConfig {
 
     /// Label for the external output arrow (default "Output (O)", Science = "Probing", etc.)
     pub output_label: &'static str,
+    /// Domain-specific description of what the output represents (for tooltip)
+    pub output_description: &'static str,
+    /// Domain-specific label for the environmental input arrow
+    pub env_input_label: &'static str,
     /// Which processes are "hampered" by external constraint (drawn with dashed border).
     /// Bureaucracy has Innovation and Judgment hampered. Default: all false.
     pub hampered_processes: [bool; 4],
@@ -199,6 +203,8 @@ pub fn abstract_system() -> DomainConfig {
         coupling_tooltip: "How strongly the system's processes are coupled to environmental input. \"The system's input from the environment may be processed within the system to confront, and perhaps modify, the model.\" \u{2014} Ch 5",
 
         output_label: "Output (O)",
+        output_description: "The system's actions directed at\nthe environment, generating\nconsequences that feed back\ninto learning.",
+        env_input_label: "Env Input (I)",
         hampered_processes: [false; 4],
     }
 }

@@ -41,6 +41,8 @@ pub fn science_system() -> DomainConfig {
         coupling_tooltip: "Science is anchored to empirical nature \u{2014} experiments constrain theory. The natural environment provides feedback that cannot be wished away or legislated, making science's anchor uniquely strong among social systems. \u{2014} Ch 7",
 
         output_label: "Probing",
+        output_description: "Experimental probing of the\nnatural environment — the\nsystem's distinctive output\nthat generates empirical feedback.",
+        env_input_label: "Empirical Feedback (I)",
         hampered_processes: [false; 4],
     }
 }

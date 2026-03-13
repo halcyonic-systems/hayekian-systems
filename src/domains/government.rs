@@ -41,6 +41,8 @@ pub fn legislature_system() -> DomainConfig {
         coupling_tooltip: "\"The only serious fully external constraint on legislatures is the preferences of constituents, and these are notoriously divergent and usually expressed as generalities lacking in specificity.\" The legislature's anchor is ideological, not physical \u{2014} legislation modifies the very environment that produces its feedback. \u{2014} Ch 8",
 
         output_label: "Political Advertising",
+        output_description: "Communication to constituents\nshaping political preferences —\nthe legislature modifies the very\nenvironment that constrains it.",
+        env_input_label: "Constituent Preferences (I)",
         hampered_processes: [false; 4],
     }
 }
@@ -87,6 +89,8 @@ pub fn bureaucracy_system() -> DomainConfig {
         coupling_tooltip: "\"Government bureaucracies face constraints which, while more forgiving in terms of survival and growth, are both more invasive of their internal operations and more likely to change unpredictably.\" \u{2014} Ch 8",
 
         output_label: "Output (O)",
+        output_description: "Agency services, regulatory\nactions, and operations\ndelivered to clients and\nthe public.",
+        env_input_label: "Directives & Feedback (I)",
         hampered_processes: [true, true, false, false],
     }
 }
