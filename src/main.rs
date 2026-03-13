@@ -119,7 +119,13 @@ fn App() -> impl IntoView {
                     <TheoryPanel domain_config=domain_config />
                     <div class="citation">
                         "Based on McQuade & Butos, "
-                        <em>"Anticipatory Systems in a Hayekian Framework"</em>
+                        <a
+                            href="https://www.amazon.com/Hayekian-Systems-Structure-Interaction-Foundations-ebook/dp/B0BRYNMSKQ"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            <em>"Anticipatory Systems in a Hayekian Framework"</em>
+                        </a>
                         " (Routledge)"
                     </div>
                 </div>

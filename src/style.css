@@ -422,10 +422,21 @@ html, body {
 /* Citation */
 .citation {
     text-align: center;
-    font-style: italic;
-    font-size: 12px;
+    font-size: 15px;
     color: var(--cite-color);
-    padding: 4px 0;
+    padding: 10px 0;
+}
+
+.citation a {
+    color: var(--cite-color);
+    text-decoration: underline;
+    text-decoration-color: var(--separator);
+    text-underline-offset: 2px;
+}
+
+.citation a:hover {
+    color: var(--text-primary);
+    text-decoration-color: var(--text-primary);
 }
 
 /* Tooltip */
