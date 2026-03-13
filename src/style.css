@@ -11,6 +11,7 @@
     --boundary: #a59b8c;
     --env-label: #146496;
     --env-stroke: rgba(30, 120, 170, 0.8);
+    --flow-label: #3c3219;
     --cite-color: #5a5545;
     --separator: #c8c0b0;
 }
@@ -20,14 +21,15 @@
     --bg-canvas: #30343e;
     --bg-chart: #2e323c;
     --bg-bar: #343842;
-    --text-primary: #ffffff;
-    --text-secondary: #b4bec8;
-    --text-dim: #a0a0b4;
-    --boundary: #50526a;
-    --env-label: #64b4dc;
-    --env-stroke: rgba(100, 180, 220, 0.8);
-    --cite-color: #78788c;
-    --separator: #50546a;
+    --text-primary: #e8ecf0;
+    --text-secondary: #c0cad4;
+    --text-dim: #a0a8b8;
+    --boundary: #5c5e78;
+    --env-label: #7cc4e8;
+    --env-stroke: rgba(124, 196, 232, 0.85);
+    --flow-label: #d0cca8;
+    --cite-color: #8888a0;
+    --separator: #585c72;
 }
 
 * {
@@ -244,6 +246,7 @@ html, body {
 }
 
 .ales-loop .flow-label {
+    fill: var(--flow-label);
     font-size: 11px;
     text-anchor: middle;
     dominant-baseline: central;

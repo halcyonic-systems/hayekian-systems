@@ -117,7 +117,6 @@ pub fn AlesLoop(
                 {move || {
                     let s = state.get();
                     let cfg = domain_config.get();
-                    let lm = light_mode.get();
                     let mut flows = Vec::new();
                     for i in 0..4 {
                         let next = (i + 1) % 4;
@@ -147,17 +146,13 @@ pub fn AlesLoop(
                         let len = (dx * dx + dy * dy).sqrt().max(0.1);
                         let px = -dy / len * 14.0;
                         let py = dx / len * 14.0;
-                        let label_color = if lm {
-                            format!("rgba(60, 50, 25, {:.2})", alpha)
-                        } else {
-                            format!("rgba(200, 200, 160, {:.2})", alpha)
-                        };
+                        let label_opacity = format!("{:.2}", alpha);
                         flows.push(view! {
                             <text
                                 x=mx + px
                                 y=my + py
                                 class="flow-label"
-                                fill=label_color
+                                opacity=label_opacity
                             >
                                 {cfg.flow_labels[i]}
                             </text>
