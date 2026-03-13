@@ -1,58 +1,15 @@
 mod core;
 mod domains;
-mod ui;
+mod components;
 
-use eframe::egui;
+use leptos::prelude::*;
 use crate::core::system::SystemState;
 use crate::domains::DomainConfig;
-use crate::ui::{controls, dashboard, loop_view};
-
-// Native entry point
-#[cfg(not(target_arch = "wasm32"))]
-fn main() -> eframe::Result<()> {
-    let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1200.0, 780.0])
-            .with_title("Hayekian Anticipatory Systems Explorer"),
-        ..Default::default()
-    };
-
-    eframe::run_native(
-        "Hayekian Systems",
-        options,
-        Box::new(|_cc| Ok(Box::new(HayekianApp::default()))),
-    )
-}
-
-// Web entry point
-#[cfg(target_arch = "wasm32")]
-fn main() {
-    use eframe::wasm_bindgen::JsCast as _;
-    let web_options = eframe::WebOptions::default();
-    wasm_bindgen_futures::spawn_local(async {
-        let document = web_sys::window()
-            .expect("No window")
-            .document()
-            .expect("No document");
-        let canvas = document
-            .get_element_by_id("the_canvas_id")
-            .expect("No canvas element")
-            .dyn_into::<web_sys::HtmlCanvasElement>()
-            .expect("Not a canvas");
-        eframe::WebRunner::new()
-            .start(
-                canvas,
-                web_options,
-                Box::new(|_cc| Ok(Box::new(HayekianApp::default()))),
-            )
-            .await
-            .expect("failed to start eframe");
-    });
-}
+use crate::components::{ales_loop::AlesLoop, controls::ParameterControls, dashboard::KnowledgePanel, theory_panel::TheoryPanel};
 
 /// Available domain configurations.
-#[derive(Clone, Copy, Debug, PartialEq)]
-enum Domain {
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Domain {
     Abstract,
     Market,
     Firm,
@@ -63,7 +20,7 @@ enum Domain {
 }
 
 impl Domain {
-    const ALL: [Domain; 7] = [
+    pub const ALL: [Domain; 7] = [
         Domain::Abstract,
         Domain::Market,
         Domain::Firm,
@@ -73,7 +30,7 @@ impl Domain {
         Domain::Bureaucracy,
     ];
 
-    fn label(&self) -> &'static str {
+    pub fn label(&self) -> &'static str {
         match self {
             Domain::Abstract => "Abstract (Ch 5)",
             Domain::Market => "Market (Ch 6, Fig 6.1)",
@@ -85,7 +42,7 @@ impl Domain {
         }
     }
 
-    fn config(&self) -> DomainConfig {
+    pub fn config(&self) -> DomainConfig {
         match self {
             Domain::Abstract => domains::abstract_system(),
             Domain::Market => domains::market::market_system(),
@@ -96,210 +53,95 @@ impl Domain {
             Domain::Bureaucracy => domains::government::bureaucracy_system(),
         }
     }
-}
 
-struct HayekianApp {
-    state: SystemState,
-    running: bool,
-    theory_panel_open: bool,
-    domain: Domain,
-    domain_config: DomainConfig,
-    light_mode: bool,
-}
-
-impl Default for HayekianApp {
-    fn default() -> Self {
-        let domain = Domain::Abstract;
-        Self {
-            state: SystemState::default(),
-            running: false,
-            theory_panel_open: false,
-            domain,
-            domain_config: domain.config(),
-            light_mode: true,
+    pub fn key(&self) -> &'static str {
+        match self {
+            Domain::Abstract => "abstract",
+            Domain::Market => "market",
+            Domain::Firm => "firm",
+            Domain::FreeBanking => "freebanking",
+            Domain::Science => "science",
+            Domain::Legislature => "legislature",
+            Domain::Bureaucracy => "bureaucracy",
         }
     }
 }
 
-impl eframe::App for HayekianApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Step simulation if running.
-        if self.running {
-            self.state.step(0.1);
-            ctx.request_repaint(); // continuous animation
+fn main() {
+    leptos::mount::mount_to_body(App);
+}
+
+#[component]
+fn App() -> impl IntoView {
+    let (domain, set_domain) = signal(Domain::Abstract);
+    let domain_config = Memo::new(move |_| domain.get().config());
+    let state = RwSignal::new(SystemState::default());
+    let (running, set_running) = signal(false);
+    let (light_mode, set_light_mode) = signal(true);
+
+    // Animation loop using request_animation_frame
+    let anim_running = running;
+    let anim_state = state;
+    Effect::new(move |_| {
+        if anim_running.get() {
+            request_animation_frame(anim_state, anim_running);
         }
+    });
 
-        // Theme
-        if self.light_mode {
-            let mut visuals = egui::Visuals::light();
-            visuals.panel_fill = egui::Color32::from_rgb(245, 240, 230);  // warm cream
-            visuals.window_fill = egui::Color32::from_rgb(245, 240, 230);
-            visuals.extreme_bg_color = egui::Color32::from_rgb(235, 228, 216);
-            visuals.faint_bg_color = egui::Color32::from_rgb(250, 245, 236);
-            ctx.set_visuals(visuals);
-        } else {
-            let mut visuals = egui::Visuals::dark();
-            visuals.panel_fill = egui::Color32::from_rgb(58, 62, 74);
-            visuals.window_fill = egui::Color32::from_rgb(58, 62, 74);
-            visuals.extreme_bg_color = egui::Color32::from_rgb(48, 52, 62);
-            visuals.faint_bg_color = egui::Color32::from_rgb(66, 70, 82);
-            ctx.set_visuals(visuals);
-        }
+    let theme_class = move || if light_mode.get() { "app-root" } else { "app-root dark" };
+    let theme_label = move || if light_mode.get() { "\u{2600} Light" } else { "\u{263D} Dark" };
 
-        // Left panel: controls
-        egui::SidePanel::left("controls_panel")
-            .min_width(260.0)
-            .max_width(300.0)
-            .show(ctx, |ui| {
-                ui.add_space(8.0);
+    view! {
+        <div class=theme_class>
+            <div class="sidebar">
+                <button class="theme-toggle" on:click=move |_| set_light_mode.update(|v| *v = !*v)>
+                    {theme_label}
+                </button>
+                <hr class="section-sep" />
 
-                // Theme toggle
-                ui.horizontal(|ui| {
-                    let label = if self.light_mode { "☀ Light" } else { "☽ Dark" };
-                    if ui.button(label).clicked() {
-                        self.light_mode = !self.light_mode;
-                    }
-                });
-                ui.add_space(4.0);
-                ui.separator();
-                ui.add_space(4.0);
-
-                // Domain selector
-                ui.heading("Domain");
-                ui.add_space(4.0);
-                let prev_domain = self.domain;
-                for d in Domain::ALL {
-                    if ui.radio_value(&mut self.domain, d, d.label()).changed() {
-                        // Relabel but keep parameters and state — the invariance payoff
-                        self.domain_config = self.domain.config();
-                    }
-                }
-                if self.domain != prev_domain {
-                    self.domain_config = self.domain.config();
-                }
-
-                ui.add_space(8.0);
-                ui.separator();
-                ui.add_space(4.0);
-
-                // Chapter/figure info
-                ui.label(egui::RichText::new(self.domain_config.name).strong());
-                ui.label(
-                    egui::RichText::new(format!(
-                        "{} \u{2014} {}",
-                        self.domain_config.chapter, self.domain_config.figure
-                    ))
-                    .small()
-                    .color(if self.light_mode { egui::Color32::from_rgb(60, 60, 78) } else { egui::Color32::from_rgb(160, 160, 180) }),
-                );
-
-                ui.add_space(8.0);
-                ui.separator();
-                ui.add_space(8.0);
-
-                controls::parameter_controls(
-                    ui,
-                    &mut self.state.params,
-                    &mut self.running,
-                    &self.domain_config,
-                );
-
-            });
-
-        // Central area: loop + metrics + chart
-        egui::CentralPanel::default().show(ctx, |ui| {
-            // Citation pinned at very bottom (rendered first in bottom-up pass)
-            let cite_color = if self.light_mode {
-                egui::Color32::from_rgb(90, 85, 75)
-            } else {
-                egui::Color32::from_rgb(120, 120, 140)
-            };
-
-            // Use a top-down layout for the main content
-            ui.add_space(4.0);
-
-            // Loop diagram — takes proportional space
-            loop_view::ales_loop(ui, &self.state, &self.domain_config, self.light_mode);
-
-            ui.add_space(6.0);
-            ui.separator();
-            ui.add_space(4.0);
-
-            // Horizontal metrics strip
-            dashboard::metrics_strip(ui, &self.state, &self.domain_config, self.light_mode);
-
-            ui.add_space(6.0);
-
-            // Chart — fills remaining space minus citation and theory
-            dashboard::knowledge_chart(ui, &self.state, self.light_mode);
-
-            ui.add_space(4.0);
-
-            // Collapsible theory panel
-            let theory_title = format!(
-                "Theory \u{2014} McQuade {}: {}",
-                self.domain_config.chapter, self.domain_config.name
-            );
-            egui::CollapsingHeader::new(
-                egui::RichText::new(theory_title)
-                    .color(if self.light_mode { egui::Color32::from_rgb(60, 60, 78) } else { egui::Color32::from_rgb(160, 160, 180) }),
-            )
-            .default_open(self.theory_panel_open)
-            .show(ui, |ui| {
-                self.theory_panel_open = true;
-                theory_panel(ui, &self.domain_config, self.light_mode);
-            });
-
-            // Source citation
-            ui.add_space(4.0);
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
-                ui.label(
-                    egui::RichText::new("Based on McQuade & Butos, Anticipatory Systems in a Hayekian Framework (Routledge)")
-                        .italics()
-                        .color(cite_color),
-                );
-            });
-        });
+                <ParameterControls
+                    state=state
+                    running=running
+                    set_running=set_running
+                    domain=domain
+                    set_domain=set_domain
+                    domain_config=domain_config
+                />
+            </div>
+            <div class="main-content">
+                <div class="diagram-area">
+                    <AlesLoop state=state domain_config=domain_config light_mode=light_mode />
+                </div>
+                <div class="chart-area">
+                    <KnowledgePanel state=state domain_config=domain_config />
+                </div>
+                <div class="footer-area">
+                    <TheoryPanel domain_config=domain_config />
+                    <div class="citation">
+                        "Based on McQuade & Butos, "
+                        <em>"Anticipatory Systems in a Hayekian Framework"</em>
+                        " (Routledge)"
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 }
 
-/// Theory panel content, adapting to the current domain.
-fn theory_panel(ui: &mut egui::Ui, config: &DomainConfig, light_mode: bool) {
-    let dim = if light_mode { egui::Color32::from_rgb(60, 60, 78) } else { egui::Color32::from_rgb(160, 160, 180) };
+/// Schedule the next animation frame: step the simulation and request another frame if still running.
+fn request_animation_frame(state: RwSignal<SystemState>, running: ReadSignal<bool>) {
+    use wasm_bindgen::prelude::*;
 
-    ui.label(
-        egui::RichText::new(format!(
-            "{}: Process organization in {}",
-            config.figure,
-            config.name.to_lowercase()
-        ))
-        .italics()
-        .color(dim),
-    );
-    ui.add_space(4.0);
-
-    // Show process descriptions from this domain
-    for i in 0..4 {
-        ui.label(egui::RichText::new(config.process_labels[i]).strong());
-        ui.label(egui::RichText::new(config.process_descriptions[i]).color(dim));
-        ui.add_space(2.0);
-    }
-    ui.add_space(4.0);
-
-    ui.label(egui::RichText::new(config.knowledge_label).strong());
-    ui.label(egui::RichText::new(config.knowledge_description).color(dim));
-    ui.add_space(4.0);
-
-    // Cross-domain insight (only show when not abstract)
-    if config.figure != "Figure 5.2" {
-        ui.separator();
-        ui.add_space(4.0);
-        ui.label(egui::RichText::new("Cross-Domain Invariance").strong());
-        ui.label(egui::RichText::new(
-            "\"At the most general level, what is crucial for adaptation in social systems \
-             of all sorts is not the specific ability to form prices but the ability to \
-             generate feedback effects which constrain self-interest while at the same time \
-             encouraging innovation and growth.\" \u{2014} Ch 6, p.51"
-        ).color(dim));
-    }
+    let window = web_sys::window().expect("no window");
+    let closure = Closure::once(move || {
+        if running.get_untracked() {
+            state.update(|s| s.step(0.1));
+            // Schedule next frame
+            request_animation_frame(state, running);
+        }
+    });
+    window
+        .request_animation_frame(closure.as_ref().unchecked_ref())
+        .expect("failed to request animation frame");
+    closure.forget();
 }

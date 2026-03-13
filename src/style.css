@@ -1,0 +1,453 @@
+/* Hayekian Systems — CSS variables for light/dark theming */
+
+:root {
+    --bg-panel: #f5f0e6;
+    --bg-canvas: #ebe4d8;
+    --bg-chart: #e6e0d4;
+    --bg-bar: #dad4c8;
+    --text-primary: #1e1e28;
+    --text-secondary: #373a48;
+    --text-dim: #3c3c4e;
+    --boundary: #a59b8c;
+    --env-label: #146496;
+    --env-stroke: rgba(30, 120, 170, 0.8);
+    --cite-color: #5a5545;
+    --separator: #c8c0b0;
+}
+
+.dark {
+    --bg-panel: #3a3e4a;
+    --bg-canvas: #30343e;
+    --bg-chart: #2e323c;
+    --bg-bar: #343842;
+    --text-primary: #ffffff;
+    --text-secondary: #b4bec8;
+    --text-dim: #a0a0b4;
+    --boundary: #50526a;
+    --env-label: #64b4dc;
+    --env-stroke: rgba(100, 180, 220, 0.8);
+    --cite-color: #78788c;
+    --separator: #50546a;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    background: var(--bg-panel);
+    color: var(--text-primary);
+}
+
+/* Root layout */
+.app-root {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    min-width: 260px;
+    max-width: 300px;
+    padding: 12px 16px;
+    overflow-y: auto;
+    border-right: 1px solid var(--separator);
+    background: var(--bg-panel);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sidebar h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 4px 0;
+}
+
+.sidebar .section-sep {
+    border: none;
+    border-top: 1px solid var(--separator);
+    margin: 6px 0;
+}
+
+/* Theme toggle */
+.theme-toggle {
+    background: none;
+    border: 1px solid var(--separator);
+    color: var(--text-primary);
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+.theme-toggle:hover {
+    background: var(--bg-canvas);
+}
+
+/* Domain selector */
+.domain-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.domain-list label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 4px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 13px;
+}
+.domain-list label:hover {
+    background: var(--bg-canvas);
+}
+
+.domain-info {
+    color: var(--text-dim);
+    font-size: 12px;
+}
+.domain-info .name {
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+}
+
+/* Sliders */
+.param-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.param-slider label {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 2px;
+    cursor: help;
+}
+
+.param-slider input[type="range"] {
+    width: 100%;
+    accent-color: var(--env-label);
+}
+
+.param-slider .value {
+    font-size: 12px;
+    color: var(--text-secondary);
+    float: right;
+}
+
+/* Buttons row */
+.controls-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.controls-buttons button {
+    flex: 1;
+    padding: 6px 12px;
+    border: 1px solid var(--separator);
+    border-radius: 4px;
+    background: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 13px;
+}
+.controls-buttons button:hover {
+    background: var(--bg-canvas);
+}
+
+/* Main content area — CSS grid for proper proportioning */
+.main-content {
+    flex: 1;
+    display: grid;
+    grid-template-rows: 1fr minmax(180px, 0.45fr) auto;
+    overflow: hidden;
+    padding: 4px 8px;
+    background: var(--bg-panel);
+    gap: 4px;
+}
+
+.diagram-area {
+    min-height: 200px;
+    overflow: hidden;
+}
+
+.chart-area {
+    min-height: 180px;
+    overflow: hidden;
+}
+
+.footer-area {
+    overflow-y: auto;
+    max-height: 160px;
+}
+
+/* ALES loop SVG */
+.ales-loop-container {
+    width: 100%;
+    height: 100%;
+}
+
+.ales-loop-container svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* SVG styles */
+.ales-loop .boundary {
+    fill: var(--bg-canvas);
+    stroke: var(--boundary);
+    stroke-width: 1;
+}
+
+.ales-loop .process-box {
+    stroke-width: 1.5;
+    rx: 3;
+    ry: 3;
+}
+
+.ales-loop .process-box.hampered {
+    stroke-dasharray: 5 3;
+}
+
+.ales-loop .process-name {
+    fill: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.ales-loop .process-notation {
+    fill: var(--text-secondary);
+    font-size: 10px;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.ales-loop .flow-line {
+    fill: none;
+    stroke-linecap: round;
+}
+
+.ales-loop .flow-label {
+    font-size: 11px;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.ales-loop .knowledge-box {
+    rx: 3;
+    ry: 3;
+}
+
+.ales-loop .knowledge-label {
+    fill: var(--text-primary);
+    font-size: 11px;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.ales-loop .knowledge-pct {
+    font-size: 11px;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.ales-loop .env-path {
+    fill: none;
+    stroke: var(--env-stroke);
+    stroke-width: 2;
+}
+
+.ales-loop .env-label {
+    fill: var(--env-label);
+    font-size: 10px;
+}
+
+/* Knowledge panel — unified metrics + chart */
+.knowledge-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: 6px;
+    background: var(--bg-chart);
+    overflow: hidden;
+}
+
+/* Metric pills row */
+.metric-pills {
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    flex-shrink: 0;
+}
+
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: var(--bg-panel);
+    border-left: 3px solid var(--pill-color, var(--separator));
+    font-size: 12px;
+}
+
+.pill .pill-label {
+    color: var(--text-dim);
+}
+
+.pill .pill-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.pill.trend-rising {
+    --pill-color: #3cb43c;
+}
+.pill.trend-rising .pill-value {
+    color: #3cb43c;
+}
+
+.pill.trend-falling {
+    --pill-color: #c84646;
+}
+.pill.trend-falling .pill-value {
+    color: #c84646;
+}
+
+.pill.trend-stable {
+    --pill-color: var(--text-dim);
+}
+.pill.trend-stable .pill-value {
+    color: var(--text-dim);
+}
+
+/* Chart SVG */
+.knowledge-chart-svg {
+    flex: 1;
+    width: 100%;
+    min-height: 0; /* allow shrink in flex */
+}
+
+.chart-bg {
+    fill: var(--bg-chart);
+    rx: 0;
+    ry: 0;
+}
+
+.chart-grid {
+    stroke: var(--separator);
+    stroke-width: 0.5;
+    opacity: 0.35;
+}
+
+.chart-grid-label {
+    fill: var(--text-dim);
+    font-size: 9px;
+}
+
+.chart-line {
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.chart-legend {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.chart-axis-label {
+    fill: var(--text-dim);
+    font-size: 10px;
+}
+
+/* Theory panel */
+.theory-panel {
+    margin-top: 4px;
+}
+
+.theory-panel summary {
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 13px;
+    padding: 4px 0;
+}
+
+.theory-panel summary:hover {
+    color: var(--text-primary);
+}
+
+.theory-content {
+    padding: 8px 0;
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+.theory-content .process-entry {
+    margin-bottom: 6px;
+}
+
+.theory-content .process-entry strong {
+    color: var(--text-primary);
+    display: block;
+}
+
+.theory-content .cross-domain {
+    border-top: 1px solid var(--separator);
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+.theory-content .cross-domain strong {
+    color: var(--text-primary);
+}
+
+/* Citation */
+.citation {
+    text-align: center;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--cite-color);
+    padding: 4px 0;
+}
+
+/* Tooltip */
+.tooltip {
+    position: fixed;
+    background: var(--bg-panel);
+    border: 1px solid var(--separator);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 12px;
+    max-width: 250px;
+    pointer-events: none;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.tooltip strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.tooltip .stat {
+    color: var(--text-secondary);
+    margin-top: 4px;
+}

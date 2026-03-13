@@ -5,15 +5,16 @@ Interactive visualization of McQuade & Butos's anticipatory systems framework. U
 ## Quick Start
 
 ```bash
-cargo run              # Launch the app (debug build)
-cargo build --release  # Rebuild optimized binary (needed after code changes)
+trunk serve              # Dev server with hot-reload
+trunk build --release --public-url /hayekian-systems/  # Production WASM build
 ```
 
 **Live web app**: https://halcyonic.systems/hayekian-systems/ (auto-deploys on push to main)
-**Desktop launcher**: `~/Desktop/Hayekian Systems.app` — double-click or Dock it. After code changes, run `cargo build --release` to update.
+**Desktop launcher**: `~/Desktop/Hayekian Systems.app` — opens the web URL in default browser
 **Repo**: https://github.com/halcyonic-systems/hayekian-systems
 
-**Theme**: Light (cream) and dark (slate) modes with toggle button at top-left of controls panel. Default is light/cream. All UI colors (process boxes, text, flow labels, knowledge box, env indicators) adapt to the active theme via `light_mode` bool passed through the UI layer.
+**Framework**: Leptos 0.8 CSR (client-side rendering). Migrated from egui 0.31 on 2026-03-13.
+**Theme**: Light (cream) and dark (slate) modes via CSS variables + `.dark` class toggle. Default is light.
 
 ## Source Material
 
@@ -27,22 +28,33 @@ Always read the relevant chapter before implementing. The plan's parameter names
 
 ```
 src/
-├── main.rs              # eframe app, domain selector, theory panel, light/dark toggle
-├── core/
+├── main.rs              # Leptos mount, root <App>, Domain enum, animation loop
+├── style.css            # All styling — CSS variables for light/dark theming
+├── core/                # PURE SIMULATION — no UI imports
 │   ├── mod.rs
 │   ├── params.rs        # 4 structural parameters + derived dynamics
 │   └── system.rs        # SystemState, ALES process enum, simulation step
-├── domains/
-│   ├── mod.rs           # DomainConfig, DomainPalette, abstract_system(), palette functions
+├── domains/             # DOMAIN DATA — no UI imports (uses Color struct, not egui)
+│   ├── mod.rs           # Color, DomainConfig, DomainPalette, abstract_system(), palettes
 │   ├── market.rs        # Market (Fig 6.1), Firm (Fig 6.2), Free Banking (Fig 6.3)
 │   ├── science.rs       # Science (Fig 7.1)
 │   └── government.rs    # Legislature (Fig 8.1), Bureaucracy (Fig 8.2)
-└── ui/
+└── components/          # LEPTOS COMPONENTS — all rendering happens here
     ├── mod.rs
-    ├── loop_view.rs     # Loop diagram (rectangular boxes, palette-driven, light/dark aware)
-    ├── controls.rs      # Parameter sliders with domain-specific labels/tooltips
-    └── dashboard.rs     # System health metrics + knowledge sparkline (light/dark aware)
+    ├── ales_loop.rs     # <AlesLoop> SVG diagram (process boxes, flows, knowledge, env feedback)
+    ├── controls.rs      # <ParameterControls> domain selector, sliders, run/pause/reset
+    ├── dashboard.rs     # <MetricsStrip> CSS bars + <KnowledgeChart> SVG polyline
+    └── theory_panel.rs  # <TheoryPanel> collapsible theory content
 ```
+
+### Key Design Decisions (Leptos migration)
+
+- **Color struct**: `domains::Color(u8, u8, u8)` replaces `egui::Color32`. Convert to CSS at render time via `.to_css()` / `.to_css_alpha()`.
+- **SVG for diagrams**: ALES loop and knowledge chart use inline SVG with `viewBox` for responsiveness. No canvas, no paint calls.
+- **CSS variables for theming**: `style.css` defines `--bg-panel`, `--text-primary`, etc. Dark mode via `.dark` class on root div.
+- **Domain palette → CSS**: Set via inline `style` attributes or computed in component code. No egui Color32 anywhere in rendering.
+- **Animation**: `request_animation_frame` recursive loop in `main.rs`, only active when `running` signal is true.
+- **Tooltips**: SVG `<title>` elements (native browser tooltips). Simpler than egui's `show_tooltip_at_pointer`.
 
 ## The Four Structural Parameters
 
@@ -71,34 +83,24 @@ Each domain is a `DomainConfig` (labels, descriptions, tooltips, palette) that p
 
 ### Adding New Domains
 
-When implementing a new chapter's domain:
-
 1. **Read the chapter** — use McQuade's exact process labels from the figure
 2. **Create a palette function** in `domains/mod.rs` (e.g., `palette_science()`)
 3. **Create a domain config function** in the appropriate `domains/*.rs` file
 4. **Add the variant** to the `Domain` enum in `main.rs`
-5. **Color scheme should be visually distinct** from existing domains — each domain should feel different at a glance
+5. **Color scheme should be visually distinct** from existing domains
 
 ### DomainPalette Fields
 
 | Field | Used For |
 |-------|----------|
-| `accent` | Process box borders, active UI elements |
-| `accent_dim` | Process box fill (lerped with activation level) |
-| `knowledge_accent` | Knowledge box border, percentage text, arrow |
+| `accent` | Process box borders (`stroke`), active UI elements |
+| `accent_dim` | Process box fill lerped with activation (dark mode) |
+| `knowledge_accent` | Knowledge box border, percentage text, arrow marker |
 | `flow_healthy` | Flow arrows when strength > 0.6 |
 | `flow_warning` | Flow arrows when strength 0.3–0.6 |
 | `flow_danger` | Flow arrows when strength < 0.3 |
 
-### Planned Palettes for Future Chapters
-
-| Domain | Chapter | Suggested Palette |
-|--------|---------|-------------------|
-| Big Player | Ch 9-10 | Orange/warning — intervention, disruption |
-
 ## Chapter Build Order
-
-Each chapter = a working app on its own. Review gate between each.
 
 | Ch | Book Source | Status | What It Adds |
 |----|-----------|--------|-------------|
@@ -125,47 +127,49 @@ Knowledge box sits on the L→E edge (right side), arrow pointing inward.
 
 ## Theme System
 
-Two modes toggled via button at top-left of controls panel:
+CSS variables in `style.css`. Two modes toggled via `.dark` class on root div:
 
-| Mode | Panel Fill | Loop Background | Text | Box Fills |
-|------|-----------|----------------|------|-----------|
-| Light (default) | Cream `(245, 240, 230)` | Warm `(235, 228, 216)` | Dark `(40, 40, 50)` | White tinted toward palette accent |
-| Dark | Slate `(58, 62, 74)` | Dark `(48, 52, 62)` | White | Dark, lerped from `accent_dim` |
+| Mode | `--bg-panel` | `--bg-canvas` | `--text-primary` | Box Fills |
+|------|-------------|--------------|-----------------|-----------|
+| Light (default) | `#f5f0e6` | `#ebe4d8` | `#1e1e28` | White tinted toward accent |
+| Dark | `#3a3e4a` | `#30343e` | `#ffffff` | Dark, lerped from `accent_dim` |
 
-**Implementation**: `light_mode: bool` on `HayekianApp`, passed to `loop_view::ales_loop()` and `dashboard::system_dashboard()`. Helper colors (`text_primary`, `text_secondary`, `boundary_color`, `env_label_color`) computed at top of `ales_loop()`. `node_color()`, `knowledge_color()` accept `light_mode` param.
-
-**When adding new UI**: Always branch on `light_mode` for any hardcoded colors. Use semantic variables, not raw RGB in paint calls.
+**When adding new UI**: Use CSS variables from `style.css`, not hardcoded colors. Domain-specific colors come from `DomainPalette` via `Color::to_css()`.
 
 ## Desktop App Launcher
 
-Built via `osacompile` — AppleScript wrapper that launches the release binary directly (no Terminal window):
+Opens the live web URL in default browser:
 ```bash
 osacompile -o ~/Desktop/"Hayekian Systems.app" -e \
-  'do shell script "/Users/home/Desktop/halcyonic-projects/active/hayekian-systems/target/release/hayekian-systems &> /dev/null &"'
+  'do shell script "open https://halcyonic.systems/hayekian-systems/"'
 ```
-Rebuild after code changes: `cargo build --release`
-
-**Note**: `.command` files don't work reliably with oh-my-zsh Terminal resume. Use `.app` bundles instead.
 
 ## Conventions
 
 - **Terminology**: Use McQuade's actual words from the relevant chapter, not synthesized abstractions
 - **Diagrams**: Match book figures (rectangular boxes, not circles/diamonds)
-- **Theory surfacing**: Static tooltips on hover + collapsible panel, not rotating text
+- **Theory surfacing**: Native `<details>/<summary>` for collapse, SVG `<title>` for tooltips
 - **Color schemes**: Each domain gets a distinct palette; new domains MUST define a palette
-- **Theme**: All new UI must work in both light and dark modes
+- **Theme**: All new UI must use CSS variables from `style.css`
 - **Commits**: Conventional commits with Claude co-author attribution
-- **egui version**: 0.31 — note API differences from tutorials (StrokeKind, LayerId args)
+- **Leptos**: 0.8 CSR mode, `features = ["csr"]`. Trunk for build/serve.
 
-## Key egui 0.31 Patterns
+## Leptos Patterns
 
 ```rust
-// rect_stroke needs StrokeKind as 4th arg
-painter.rect_stroke(rect, radius, stroke, StrokeKind::Inside);
+// Reactive signals
+let (domain, set_domain) = signal(Domain::Abstract);
+let domain_config = Memo::new(move |_| domain.get().config());
+let state = RwSignal::new(SystemState::default());
 
-// show_tooltip_at_pointer needs LayerId as 2nd arg
-egui::show_tooltip_at_pointer(ctx, LayerId::new(Order::Tooltip, id), widget_id, |ui| { ... });
+// SVG with dynamic attributes
+view! {
+    <rect fill=color.to_css() stroke=palette.accent.to_css() />
+}
 
-// Color32 channel access for palette lerping
-let r = color.r();  // not .r, it's a method in 0.31
+// Mixed view types in Vec — use .into_any()
+markers.push(view! { <marker ...>...</marker> }.into_any());
+
+// Animation via request_animation_frame (recursive, not Effect loop)
+fn request_animation_frame(state: RwSignal<SystemState>, running: ReadSignal<bool>) { ... }
 ```

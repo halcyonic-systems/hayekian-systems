@@ -2,31 +2,37 @@ pub mod market;
 pub mod science;
 pub mod government;
 
-use egui::Color32;
+/// UI-agnostic color — 3 u8s, convertible to CSS at render time.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Color(pub u8, pub u8, pub u8);
+
+impl Color {
+    pub fn to_css(self) -> String {
+        format!("rgb({}, {}, {})", self.0, self.1, self.2)
+    }
+    pub fn to_css_alpha(self, alpha: f32) -> String {
+        format!("rgba({}, {}, {}, {:.2})", self.0, self.1, self.2, alpha)
+    }
+    pub fn r(self) -> u8 { self.0 }
+    pub fn g(self) -> u8 { self.1 }
+    pub fn b(self) -> u8 { self.2 }
+}
 
 /// Color palette for a domain — provides visual differentiation at a glance.
-/// Each domain gets its own accent color scheme so switching domains
-/// feels like entering a different system, not just relabeling text.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DomainPalette {
-    /// Primary accent for process box borders and active elements
-    pub accent: Color32,
-    /// Dimmer version for process box fill at full activation
-    pub accent_dim: Color32,
-    /// Knowledge box border color
-    pub knowledge_accent: Color32,
-    /// Flow arrow color when healthy (strength > 0.6)
-    pub flow_healthy: Color32,
-    /// Flow arrow color when degraded (strength 0.3–0.6)
-    pub flow_warning: Color32,
-    /// Flow arrow color when broken (strength < 0.3)
-    pub flow_danger: Color32,
+    pub accent: Color,
+    pub accent_dim: Color,
+    pub knowledge_accent: Color,
+    pub flow_healthy: Color,
+    pub flow_warning: Color,
+    pub flow_danger: Color,
 }
 
 /// Domain-specific configuration for an anticipatory system.
 /// Same simulation engine, different labels — the user discovers
 /// that these are structurally the same kind of system.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DomainConfig {
     /// Display name for this domain (e.g., "Market System")
     pub name: &'static str,
@@ -73,84 +79,84 @@ pub struct DomainConfig {
 /// Blue-grey palette — neutral, theoretical (Ch 5 abstract template).
 pub fn palette_abstract() -> DomainPalette {
     DomainPalette {
-        accent: Color32::from_rgb(140, 160, 200),
-        accent_dim: Color32::from_rgb(50, 60, 90),
-        knowledge_accent: Color32::from_rgb(180, 180, 200),
-        flow_healthy: Color32::from_rgb(100, 200, 160),
-        flow_warning: Color32::from_rgb(200, 200, 100),
-        flow_danger: Color32::from_rgb(200, 80, 80),
+        accent: Color(140, 160, 200),
+        accent_dim: Color(50, 60, 90),
+        knowledge_accent: Color(180, 180, 200),
+        flow_healthy: Color(100, 200, 160),
+        flow_warning: Color(200, 200, 100),
+        flow_danger: Color(200, 80, 80),
     }
 }
 
 /// Green palette — growth, exchange, money (Ch 6 market).
 pub fn palette_market() -> DomainPalette {
     DomainPalette {
-        accent: Color32::from_rgb(100, 200, 120),
-        accent_dim: Color32::from_rgb(35, 70, 45),
-        knowledge_accent: Color32::from_rgb(120, 210, 140),
-        flow_healthy: Color32::from_rgb(80, 210, 130),
-        flow_warning: Color32::from_rgb(200, 200, 80),
-        flow_danger: Color32::from_rgb(200, 80, 80),
+        accent: Color(100, 200, 120),
+        accent_dim: Color(35, 70, 45),
+        knowledge_accent: Color(120, 210, 140),
+        flow_healthy: Color(80, 210, 130),
+        flow_warning: Color(200, 200, 80),
+        flow_danger: Color(200, 80, 80),
     }
 }
 
 /// Teal/cyan palette — corporate, contained (Ch 6 firm).
 pub fn palette_firm() -> DomainPalette {
     DomainPalette {
-        accent: Color32::from_rgb(80, 190, 200),
-        accent_dim: Color32::from_rgb(30, 60, 70),
-        knowledge_accent: Color32::from_rgb(100, 200, 210),
-        flow_healthy: Color32::from_rgb(80, 200, 200),
-        flow_warning: Color32::from_rgb(200, 200, 80),
-        flow_danger: Color32::from_rgb(200, 80, 80),
+        accent: Color(80, 190, 200),
+        accent_dim: Color(30, 60, 70),
+        knowledge_accent: Color(100, 200, 210),
+        flow_healthy: Color(80, 200, 200),
+        flow_warning: Color(200, 200, 80),
+        flow_danger: Color(200, 80, 80),
     }
 }
 
 /// Gold/amber palette — currency, reserves (Ch 6 free banking).
 pub fn palette_banking() -> DomainPalette {
     DomainPalette {
-        accent: Color32::from_rgb(220, 180, 80),
-        accent_dim: Color32::from_rgb(70, 55, 30),
-        knowledge_accent: Color32::from_rgb(230, 190, 90),
-        flow_healthy: Color32::from_rgb(220, 190, 80),
-        flow_warning: Color32::from_rgb(200, 160, 60),
-        flow_danger: Color32::from_rgb(200, 80, 80),
+        accent: Color(220, 180, 80),
+        accent_dim: Color(70, 55, 30),
+        knowledge_accent: Color(230, 190, 90),
+        flow_healthy: Color(220, 190, 80),
+        flow_warning: Color(200, 160, 60),
+        flow_danger: Color(200, 80, 80),
     }
 }
 
 /// Purple/violet palette — inquiry, knowledge (Ch 7 science).
 pub fn palette_science() -> DomainPalette {
     DomainPalette {
-        accent: Color32::from_rgb(160, 120, 200),
-        accent_dim: Color32::from_rgb(55, 40, 75),
-        knowledge_accent: Color32::from_rgb(180, 140, 220),
-        flow_healthy: Color32::from_rgb(140, 120, 210),
-        flow_warning: Color32::from_rgb(200, 180, 80),
-        flow_danger: Color32::from_rgb(200, 80, 80),
+        accent: Color(160, 120, 200),
+        accent_dim: Color(55, 40, 75),
+        knowledge_accent: Color(180, 140, 220),
+        flow_healthy: Color(140, 120, 210),
+        flow_warning: Color(200, 180, 80),
+        flow_danger: Color(200, 80, 80),
     }
 }
 
 /// Red/crimson palette — authority, law (Ch 8 legislature).
 pub fn palette_legislature() -> DomainPalette {
     DomainPalette {
-        accent: Color32::from_rgb(200, 90, 90),
-        accent_dim: Color32::from_rgb(70, 35, 35),
-        knowledge_accent: Color32::from_rgb(210, 110, 110),
-        flow_healthy: Color32::from_rgb(200, 100, 100),
-        flow_warning: Color32::from_rgb(200, 160, 80),
-        flow_danger: Color32::from_rgb(180, 60, 60),
+        accent: Color(200, 90, 90),
+        accent_dim: Color(70, 35, 35),
+        knowledge_accent: Color(210, 110, 110),
+        flow_healthy: Color(200, 100, 100),
+        flow_warning: Color(200, 160, 80),
+        flow_danger: Color(180, 60, 60),
     }
 }
 
 /// Muted brown/grey palette — institutional, constrained (Ch 8 bureaucracy).
 pub fn palette_bureaucracy() -> DomainPalette {
     DomainPalette {
-        accent: Color32::from_rgb(160, 140, 110),
-        accent_dim: Color32::from_rgb(55, 48, 38),
-        knowledge_accent: Color32::from_rgb(170, 150, 120),
-        flow_healthy: Color32::from_rgb(160, 145, 115),
-        flow_warning: Color32::from_rgb(180, 150, 80),
-        flow_danger: Color32::from_rgb(180, 80, 80),
+        accent: Color(160, 140, 110),
+        accent_dim: Color(55, 48, 38),
+        knowledge_accent: Color(170, 150, 120),
+        flow_healthy: Color(160, 145, 115),
+        flow_warning: Color(180, 150, 80),
+        flow_danger: Color(180, 80, 80),
     }
 }
 
