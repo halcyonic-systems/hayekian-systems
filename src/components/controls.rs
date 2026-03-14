@@ -11,6 +11,8 @@ pub fn ParameterControls(
     domain: ReadSignal<Domain>,
     set_domain: WriteSignal<Domain>,
     domain_config: Memo<DomainConfig>,
+    speed: ReadSignal<f32>,
+    set_speed: WriteSignal<f32>,
 ) -> impl IntoView {
     view! {
         <h3>"Domain"</h3>
@@ -85,9 +87,38 @@ pub fn ParameterControls(
 
         <hr class="section-sep" />
 
+        <h3>"Simulation"</h3>
+        <div class="param-group">
+            <div class="param-slider">
+                <label title="Simulation speed — controls time step per frame. Low values show gradual dynamics.">
+                    "Speed"
+                    <span class="value">{move || format!("{:.2}", speed.get())}</span>
+                </label>
+                <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    prop:value=move || (speed.get() * 100.0) as i32
+                    on:input=move |ev| {
+                        use wasm_bindgen::JsCast;
+                        let target = ev.target().unwrap();
+                        let input = target.unchecked_into::<web_sys::HtmlInputElement>();
+                        let v: f32 = input.value().parse().unwrap_or(5.0);
+                        set_speed.set(v / 100.0);
+                    }
+                />
+            </div>
+        </div>
+
         <div class="controls-buttons">
             <button on:click=move |_| set_running.update(|v| *v = !*v)>
                 {move || if running.get() { "\u{23F8} Pause" } else { "\u{25B6} Run" }}
+            </button>
+            <button on:click=move |_| {
+                let dt = speed.get();
+                state.update(|s| s.step(dt));
+            }>
+                "\u{23ED} Step"
             </button>
             <button on:click=move |_| {
                 let cfg = domain.get().config();

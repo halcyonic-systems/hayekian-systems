@@ -78,13 +78,15 @@ fn App() -> impl IntoView {
     let state = RwSignal::new(SystemState::default());
     let (running, set_running) = signal(false);
     let (light_mode, set_light_mode) = signal(true);
+    let (speed, set_speed) = signal(0.05_f32);
 
     // Animation loop using request_animation_frame
     let anim_running = running;
     let anim_state = state;
+    let anim_speed = speed;
     Effect::new(move |_| {
         if anim_running.get() {
-            request_animation_frame(anim_state, anim_running);
+            request_animation_frame(anim_state, anim_running, anim_speed);
         }
     });
 
@@ -106,6 +108,8 @@ fn App() -> impl IntoView {
                     domain=domain
                     set_domain=set_domain
                     domain_config=domain_config
+                    speed=speed
+                    set_speed=set_speed
                 />
             </div>
             <div class="main-content">
@@ -135,15 +139,19 @@ fn App() -> impl IntoView {
 }
 
 /// Schedule the next animation frame: step the simulation and request another frame if still running.
-fn request_animation_frame(state: RwSignal<SystemState>, running: ReadSignal<bool>) {
+fn request_animation_frame(
+    state: RwSignal<SystemState>,
+    running: ReadSignal<bool>,
+    speed: ReadSignal<f32>,
+) {
     use wasm_bindgen::prelude::*;
 
     let window = web_sys::window().expect("no window");
     let closure = Closure::once(move || {
         if running.get_untracked() {
-            state.update(|s| s.step(0.1));
-            // Schedule next frame
-            request_animation_frame(state, running);
+            let dt = speed.get_untracked();
+            state.update(|s| s.step(dt));
+            request_animation_frame(state, running, speed);
         }
     });
     window
