@@ -1,5 +1,6 @@
 use leptos::prelude::*;
-use crate::Domain;
+use crate::{Domain, SimMode};
+use crate::core::abm::AbmState;
 use crate::core::system::SystemState;
 use crate::domains::DomainConfig;
 
@@ -13,6 +14,10 @@ pub fn ParameterControls(
     domain_config: Memo<DomainConfig>,
     speed: ReadSignal<f32>,
     set_speed: WriteSignal<f32>,
+    sim_mode: ReadSignal<SimMode>,
+    agent_count: ReadSignal<u16>,
+    set_agent_count: WriteSignal<u16>,
+    set_abm_state: WriteSignal<Option<AbmState>>,
 ) -> impl IntoView {
     view! {
         <h3>"Domain"</h3>
@@ -33,6 +38,14 @@ pub fn ParameterControls(
                                         .unwrap_or_default();
                                     s.reset();
                                 });
+                                // Re-initialize ABM if in ABM mode
+                                if sim_mode.get_untracked() == SimMode::Abm {
+                                    let s = state.get_untracked();
+                                    let abm = AbmState::new(agent_count.get_untracked(), &s.params, 42);
+                                    let projected = abm.to_system_state(&s.params);
+                                    state.set(projected);
+                                    set_abm_state.set(Some(abm));
+                                }
                             }
                         />
                         {d.label()}
@@ -108,6 +121,40 @@ pub fn ParameterControls(
                     }
                 />
             </div>
+            // Agent count slider — only visible in ABM mode
+            {move || {
+                if sim_mode.get() == SimMode::Abm {
+                    view! {
+                        <div class="param-slider">
+                            <label title="Number of agents in the simulation (10-50). Changing this reinitializes the population.">
+                                "Agents"
+                                <span class="value">{move || agent_count.get().to_string()}</span>
+                            </label>
+                            <input
+                                type="range"
+                                min="10"
+                                max="50"
+                                prop:value=move || agent_count.get()
+                                on:input=move |ev| {
+                                    use wasm_bindgen::JsCast;
+                                    let target = ev.target().unwrap();
+                                    let input = target.unchecked_into::<web_sys::HtmlInputElement>();
+                                    let v: u16 = input.value().parse().unwrap_or(30);
+                                    set_agent_count.set(v);
+                                    // Reinitialize ABM with new agent count
+                                    let s = state.get_untracked();
+                                    let abm = AbmState::new(v, &s.params, 42);
+                                    let projected = abm.to_system_state(&s.params);
+                                    state.set(projected);
+                                    set_abm_state.set(Some(abm));
+                                }
+                            />
+                        </div>
+                    }.into_any()
+                } else {
+                    view! { <div /> }.into_any()
+                }
+            }}
         </div>
 
         <div class="controls-buttons">
@@ -115,19 +162,40 @@ pub fn ParameterControls(
                 {move || if running.get() { "\u{23F8} Pause" } else { "\u{25B6} Run" }}
             </button>
             <button on:click=move |_| {
-                let dt = speed.get();
-                state.update(|s| s.step(dt));
+                match sim_mode.get_untracked() {
+                    SimMode::Explorer => {
+                        let dt = speed.get_untracked();
+                        state.update(|s| s.step(dt));
+                    }
+                    SimMode::Abm => {
+                        set_abm_state.update(|maybe_abm| {
+                            if let Some(ref mut abm) = maybe_abm {
+                                let params = state.get_untracked().params;
+                                abm.step(&params);
+                                let projected = abm.to_system_state(&params);
+                                state.set(projected);
+                            }
+                        });
+                    }
+                }
             }>
                 "\u{23ED} Step"
             </button>
             <button on:click=move |_| {
-                let cfg = domain.get().config();
+                let cfg = domain.get_untracked().config();
                 state.update(|s| {
                     s.params = cfg.default_params
                         .unwrap_or_default();
                     s.reset();
                 });
                 set_running.set(false);
+                if sim_mode.get_untracked() == SimMode::Abm {
+                    let s = state.get_untracked();
+                    let abm = AbmState::new(agent_count.get_untracked(), &s.params, 42);
+                    let projected = abm.to_system_state(&s.params);
+                    state.set(projected);
+                    set_abm_state.set(Some(abm));
+                }
             }>
                 "\u{21BA} Reset"
             </button>
