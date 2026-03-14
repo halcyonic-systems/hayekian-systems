@@ -52,6 +52,9 @@ pub fn market_system() -> DomainConfig {
             process_closure: 0.95,
             env_volatility: 0.15,
         }),
+        histogram_title: "Price Accuracy Across Agents",
+        reality_label: "Resource Scarcity",
+        histogram_x_label: "Agent Price Knowledge",
     }
 }
 
@@ -106,6 +109,9 @@ pub fn firm_system() -> DomainConfig {
             process_closure: 0.90,
             env_volatility: 0.10,
         }),
+        histogram_title: "Firm Model Accuracy",
+        reality_label: "Market Conditions",
+        histogram_x_label: "Agent Firm Knowledge",
     }
 }
 
@@ -161,5 +167,8 @@ pub fn free_banking_system() -> DomainConfig {
             process_closure: 0.90,
             env_volatility: 0.10,
         }),
+        histogram_title: "Clearing Knowledge Accuracy",
+        reality_label: "Monetary Conditions",
+        histogram_x_label: "Agent Clearing Knowledge",
     }
 }

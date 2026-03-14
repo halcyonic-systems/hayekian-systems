@@ -52,5 +52,8 @@ pub fn science_system() -> DomainConfig {
             process_closure: 0.85,
             env_volatility: 0.05,
         }),
+        histogram_title: "Scientific Consensus",
+        reality_label: "Empirical Nature",
+        histogram_x_label: "Agent Scientific Knowledge",
     }
 }

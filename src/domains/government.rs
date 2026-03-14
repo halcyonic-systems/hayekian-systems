@@ -52,6 +52,9 @@ pub fn legislature_system() -> DomainConfig {
             process_closure: 0.80,
             env_volatility: 0.30,
         }),
+        histogram_title: "Legislative Knowledge",
+        reality_label: "Constituent Needs",
+        histogram_x_label: "Agent Legislative Knowledge",
     }
 }
 
@@ -107,5 +110,8 @@ pub fn bureaucracy_system() -> DomainConfig {
             process_closure: 0.70,
             env_volatility: 0.25,
         }),
+        histogram_title: "Agency Knowledge Accuracy",
+        reality_label: "Operating Conditions",
+        histogram_x_label: "Agent Agency Knowledge",
     }
 }

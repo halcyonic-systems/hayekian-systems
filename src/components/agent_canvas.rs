@@ -31,7 +31,8 @@ pub fn AgentCanvas(
                         return view! { <g /> }.into_any();
                     };
 
-                    let palette = domain_config.get().palette;
+                    let cfg = domain_config.get();
+                    let palette = cfg.palette;
                     let gt = state.env.ground_truth;
                     let n = state.agents.len() as f32;
                     let plot_w = vb_w - pad_l - pad_r;
@@ -130,13 +131,13 @@ pub fn AgentCanvas(
                             />
                             <text x=gt_x y={pad_t + plot_h + 28.0}
                                 fill=accent_css.clone() font-size="9" text-anchor="middle" font-weight="600">
-                                {format!("\u{25B2} Reality ({:.2})", gt)}
+                                {format!("\u{25B2} {} ({:.2})", cfg.reality_label, gt)}
                             </text>
 
                             // Title row: chart title left, stats right
                             <text x=pad_l y={pad_t - 14.0}
                                 fill="var(--text-primary)" font-size="13" font-weight="600">
-                                "What Agents Believe vs. Reality"
+                                {cfg.histogram_title}
                             </text>
                             <text x={pad_l + plot_w} y={pad_t - 14.0}
                                 fill="var(--text-secondary)" font-size="11" text-anchor="end">
@@ -167,7 +168,7 @@ pub fn AgentCanvas(
                             </text>
                             <text x={pad_l + plot_w / 2.0} y={pad_t + plot_h + 34.0}
                                 fill="var(--text-secondary)" font-size="11" text-anchor="middle">
-                                "Agent Knowledge (K)"
+                                {cfg.histogram_x_label}
                             </text>
 
                             // Y-axis labels

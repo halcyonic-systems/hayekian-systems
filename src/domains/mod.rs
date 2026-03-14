@@ -82,6 +82,13 @@ pub struct DomainConfig {
     /// Domain-specific default structural parameters encoding McQuade's theoretical claims.
     /// If None, uses StructuralParams::default().
     pub default_params: Option<crate::core::params::StructuralParams>,
+
+    /// Histogram title — what the agent belief distribution shows in this domain.
+    pub histogram_title: &'static str,
+    /// What the "reality" marker represents — the environmental state agents classify.
+    pub reality_label: &'static str,
+    /// X-axis label for the histogram — what individual agent knowledge means.
+    pub histogram_x_label: &'static str,
 }
 
 /// Blue-grey palette — neutral, theoretical (Ch 5 abstract template).
@@ -211,5 +218,8 @@ pub fn abstract_system() -> DomainConfig {
         env_input_label: "Env Input (I)",
         hampered_processes: [false; 4],
         default_params: None,
+        histogram_title: "Population Knowledge",
+        reality_label: "Environment",
+        histogram_x_label: "Agent Classification (K)",
     }
 }
