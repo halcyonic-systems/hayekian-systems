@@ -67,6 +67,16 @@ impl StructuralParams {
         (base_rate + innovation_boost - 0.5) * closure_gate
     }
 
+    /// Asymptotic knowledge ceiling — bounded rationality means no system
+    /// achieves perfect knowledge. Derived from structural params so that
+    /// well-functioning systems (Market, Science) cap ~0.80-0.85 while
+    /// degraded systems (Legislature, Bureaucracy) cap much lower.
+    pub fn knowledge_cap(&self) -> f32 {
+        let raw = (self.environmental_coupling * self.feedback_fidelity * self.process_closure).sqrt();
+        // Scale into [0.05, 0.90] — even perfect params can't reach 1.0
+        (raw * 0.85 + 0.05).clamp(0.05, 0.90)
+    }
+
     /// How well the system anticipates its environment.
     /// High = predictions match reality. Low = the system is surprised constantly.
     pub fn anticipation_accuracy(&self) -> f32 {

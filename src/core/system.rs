@@ -118,10 +118,11 @@ impl SystemState {
         }
 
         // Knowledge dynamics: logistic growth toward asymptotic cap.
-        // delta = rate * k * (1 - k) * dt — S-curve, never reaches 1.0.
+        // delta = rate * k * (cap - k) * dt — S-curve, bounded rationality.
         let rate = self.params.knowledge_rate();
+        let cap = self.params.knowledge_cap();
         let k = self.knowledge_quality;
-        let knowledge_delta = rate * k * (1.0 - k) * dt;
+        let knowledge_delta = rate * k * (cap - k) * dt;
 
         self.knowledge_quality = (k + knowledge_delta).clamp(0.0, 1.0);
 
