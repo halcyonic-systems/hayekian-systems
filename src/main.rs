@@ -119,6 +119,20 @@ fn App() -> impl IntoView {
 
     let is_abm = move || sim_mode.get() == SimMode::Abm;
 
+    // View tabs: which visualization is shown in the main area
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum ViewTab { Loop, Agents }
+    let (view_tab, set_view_tab) = signal(ViewTab::Agents);
+
+    // Auto-switch tab when mode changes
+    let prev_mode = sim_mode;
+    Effect::new(move |_| {
+        match prev_mode.get() {
+            SimMode::Abm => set_view_tab.set(ViewTab::Agents),
+            SimMode::Explorer => set_view_tab.set(ViewTab::Loop),
+        }
+    });
+
     view! {
         <div class=theme_class>
             <div class="sidebar">
@@ -184,20 +198,43 @@ fn App() -> impl IntoView {
                 />
             </div>
             <div class="main-content">
-                <div class="diagram-area">
-                    <AlesLoop state=state domain_config=domain_config light_mode=light_mode />
+                // View tabs — switch between visualizations
+                <div class="view-tabs">
+                    <button
+                        class=move || if view_tab.get() == ViewTab::Agents && is_abm() { "view-tab active" }
+                            else if !is_abm() { "view-tab disabled" }
+                            else { "view-tab" }
+                        on:click=move |_| { if is_abm() { set_view_tab.set(ViewTab::Agents); } }
+                    >
+                        "Agent Distribution"
+                    </button>
+                    <button
+                        class=move || if view_tab.get() == ViewTab::Loop { "view-tab active" } else { "view-tab" }
+                        on:click=move |_| set_view_tab.set(ViewTab::Loop)
+                    >
+                        "ALES Loop"
+                    </button>
                 </div>
-                {move || {
-                    if is_abm() {
-                        view! {
-                            <div class="agent-area">
-                                <AgentCanvas abm=abm_state.into() domain_config=domain_config />
-                            </div>
-                        }.into_any()
-                    } else {
-                        view! { <div /> }.into_any()
-                    }
-                }}
+
+                // Main visualization — tabbed
+                <div class="viz-area">
+                    {move || {
+                        if view_tab.get() == ViewTab::Agents && is_abm() {
+                            view! {
+                                <div class="agent-area">
+                                    <AgentCanvas abm=abm_state.into() domain_config=domain_config />
+                                </div>
+                            }.into_any()
+                        } else {
+                            view! {
+                                <div class="diagram-area">
+                                    <AlesLoop state=state domain_config=domain_config light_mode=light_mode />
+                                </div>
+                            }.into_any()
+                        }
+                    }}
+                </div>
+
                 <div class="chart-area">
                     <KnowledgePanel state=state domain_config=domain_config />
                 </div>

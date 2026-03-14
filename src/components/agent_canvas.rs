@@ -2,22 +2,22 @@ use leptos::prelude::*;
 use crate::core::abm::AbmState;
 use crate::domains::DomainConfig;
 
-const NUM_BINS: usize = 20;
+const NUM_BINS: usize = 25;
 
-/// Belief distribution histogram — shows where agents think truth is
-/// vs. where it actually is. Tight cluster near the marker = population
-/// has learned. Wide spread = loop is broken.
+/// Belief distribution histogram — shows where agents think the environment
+/// state is vs. where it actually is. Tight cluster near the marker = the
+/// population has learned. Wide spread = the loop is broken.
 #[component]
 pub fn AgentCanvas(
     abm: ReadSignal<Option<AbmState>>,
     domain_config: Memo<DomainConfig>,
 ) -> impl IntoView {
-    let vb_w = 440.0_f32;
-    let vb_h = 200.0_f32;
-    let pad_l = 32.0_f32;
-    let pad_r = 12.0_f32;
-    let pad_t = 24.0_f32;
-    let pad_b = 32.0_f32;
+    let vb_w = 600.0_f32;
+    let vb_h = 340.0_f32;
+    let pad_l = 44.0_f32;
+    let pad_r = 16.0_f32;
+    let pad_t = 36.0_f32;
+    let pad_b = 44.0_f32;
 
     view! {
         <div class="agent-canvas-container">
@@ -43,7 +43,9 @@ pub fn AgentCanvas(
                         let idx = ((agent.beliefs.clamp(0.0, 0.999)) * NUM_BINS as f32) as usize;
                         bins[idx.min(NUM_BINS - 1)] += 1;
                     }
-                    let max_bin = bins.iter().copied().max().unwrap_or(1).max(1);
+                    // Round up max to nearest multiple of 5 for clean gridlines
+                    let raw_max = bins.iter().copied().max().unwrap_or(1).max(1);
+                    let max_bin = ((raw_max + 4) / 5 * 5).max(5);
 
                     // Compute summary stats
                     let accuracies: Vec<f32> = state.agents.iter()
@@ -63,7 +65,7 @@ pub fn AgentCanvas(
                         let bar_height = (count as f32 / max_bin as f32) * plot_h;
                         let y = pad_t + plot_h - bar_height;
 
-                        // Color by distance from ground truth
+                        // Color by distance from environment state
                         let bin_center = (i as f32 + 0.5) / NUM_BINS as f32;
                         let acc = 1.0 - (bin_center - gt).abs().min(1.0);
                         let fill = accuracy_color(acc);
@@ -83,64 +85,94 @@ pub fn AgentCanvas(
                     // Ground truth marker
                     let gt_x = pad_l + gt * plot_w;
 
-                    // Y-axis tick labels (agent count)
-                    let y_mid = max_bin / 2;
+                    // Y-axis gridlines
+                    let y_ticks: Vec<u32> = (0..=max_bin).step_by(5).collect();
+                    let gridlines: Vec<_> = y_ticks.iter().filter(|&&v| v > 0).map(|&v| {
+                        let y = pad_t + plot_h - (v as f32 / max_bin as f32) * plot_h;
+                        view! {
+                            <line x1=pad_l x2={pad_l + plot_w} y1=y y2=y
+                                class="chart-grid" />
+                        }
+                    }).collect();
+
+                    // Y-axis labels
+                    let y_labels: Vec<_> = y_ticks.iter().map(|&v| {
+                        let y = pad_t + plot_h - (v as f32 / max_bin as f32) * plot_h;
+                        view! {
+                            <text x={pad_l - 6.0} y={y + 3.5}
+                                fill="var(--text-dim)" font-size="10" text-anchor="end">
+                                {v.to_string()}
+                            </text>
+                        }
+                    }).collect();
+
                     let accent_css = palette.accent.to_css();
 
                     view! {
                         <g>
                             // Plot background
                             <rect x=pad_l y=pad_t width=plot_w height=plot_h
-                                fill="var(--bg-canvas)" stroke="var(--separator)" stroke-width="0.5" rx="2" />
+                                fill="var(--bg-canvas)" stroke="var(--separator)" stroke-width="0.5" rx="3" />
+
+                            // Y gridlines
+                            {gridlines}
 
                             // Histogram bars
                             {bars}
 
-                            // Ground truth marker (in front of bars)
-                            <line x1=gt_x y1=pad_t x2=gt_x y2={pad_t + plot_h}
+                            // Environment state marker (in front of bars)
+                            <line x1=gt_x y1={pad_t - 2.0} x2=gt_x y2={pad_t + plot_h}
                                 stroke=accent_css.clone() stroke-width="2" stroke-dasharray="6 3" />
-                            <text x=gt_x y={pad_t - 5.0}
-                                fill=accent_css font-size="9" text-anchor="middle" font-weight="500">
-                                "Env. State"
+
+                            // Title row: chart title left, stats right
+                            <text x=pad_l y={pad_t - 14.0}
+                                fill="var(--text-primary)" font-size="13" font-weight="600">
+                                "Belief Distribution"
+                            </text>
+                            <text x={pad_l + plot_w} y={pad_t - 14.0}
+                                fill="var(--text-secondary)" font-size="11" text-anchor="end">
+                                {format!("{} agents  \u{00B7}  {:.0}% transacting  \u{00B7}  mean accuracy {:.0}%",
+                                    state.agents.len(), tx_pct, mean_acc * 100.0)}
                             </text>
 
-                            // X-axis labels
-                            <text x=pad_l y={vb_h - 8.0}
-                                fill="var(--text-dim)" font-size="8" text-anchor="start">
+                            // Env state label (near the marker line)
+                            <text x={gt_x + 6.0} y={pad_t + 14.0}
+                                fill=accent_css font-size="10" font-weight="500">
+                                {format!("Env. state: {:.2}", gt)}
+                            </text>
+
+                            // X-axis
+                            <text x=pad_l y={pad_t + plot_h + 16.0}
+                                fill="var(--text-dim)" font-size="10" text-anchor="start">
                                 "0"
                             </text>
-                            <text x={pad_l + plot_w / 2.0} y={vb_h - 8.0}
-                                fill="var(--text-dim)" font-size="8" text-anchor="middle">
-                                "0.5"
+                            <text x={pad_l + plot_w * 0.25} y={pad_t + plot_h + 16.0}
+                                fill="var(--text-dim)" font-size="10" text-anchor="middle">
+                                "0.25"
                             </text>
-                            <text x={pad_l + plot_w} y={vb_h - 8.0}
-                                fill="var(--text-dim)" font-size="8" text-anchor="end">
-                                "1"
+                            <text x={pad_l + plot_w * 0.5} y={pad_t + plot_h + 16.0}
+                                fill="var(--text-dim)" font-size="10" text-anchor="middle">
+                                "0.50"
                             </text>
-                            <text x={pad_l + plot_w / 2.0} y={vb_h - 0.0}
-                                fill="var(--text-dim)" font-size="9" text-anchor="middle">
+                            <text x={pad_l + plot_w * 0.75} y={pad_t + plot_h + 16.0}
+                                fill="var(--text-dim)" font-size="10" text-anchor="middle">
+                                "0.75"
+                            </text>
+                            <text x={pad_l + plot_w} y={pad_t + plot_h + 16.0}
+                                fill="var(--text-dim)" font-size="10" text-anchor="end">
+                                "1.0"
+                            </text>
+                            <text x={pad_l + plot_w / 2.0} y={pad_t + plot_h + 34.0}
+                                fill="var(--text-secondary)" font-size="11" text-anchor="middle">
                                 "Agent Knowledge (K)"
                             </text>
 
                             // Y-axis labels
-                            <text x={pad_l - 4.0} y={pad_t + 4.0}
-                                fill="var(--text-dim)" font-size="8" text-anchor="end">
-                                {max_bin.to_string()}
-                            </text>
-                            <text x={pad_l - 4.0} y={pad_t + plot_h / 2.0 + 3.0}
-                                fill="var(--text-dim)" font-size="8" text-anchor="end">
-                                {y_mid.to_string()}
-                            </text>
-                            <text x={pad_l - 4.0} y={pad_t + plot_h}
-                                fill="var(--text-dim)" font-size="8" text-anchor="end">
-                                "0"
-                            </text>
-
-                            // Summary stats (top-right)
-                            <text x={pad_l + plot_w - 2.0} y={pad_t + 12.0}
-                                fill="var(--text-secondary)" font-size="10" text-anchor="end">
-                                {format!("{} agents | {:.0}% transacting | accuracy {:.0}%",
-                                    state.agents.len(), tx_pct, mean_acc * 100.0)}
+                            {y_labels}
+                            <text x="10" y={pad_t + plot_h / 2.0}
+                                fill="var(--text-secondary)" font-size="11" text-anchor="middle"
+                                transform=format!("rotate(-90, 10, {})", pad_t + plot_h / 2.0)>
+                                "Agents"
                             </text>
                         </g>
                     }.into_any()
@@ -154,21 +186,11 @@ pub fn AgentCanvas(
 fn accuracy_color(acc: f32) -> String {
     let acc = acc.clamp(0.0, 1.0);
     let (r, g, b) = if acc < 0.5 {
-        // Red (200,60,60) → Yellow (220,200,60)
         let t = acc * 2.0;
-        (
-            200.0 + t * 20.0,
-            60.0 + t * 140.0,
-            60.0,
-        )
+        (200.0 + t * 20.0, 60.0 + t * 140.0, 60.0)
     } else {
-        // Yellow (220,200,60) → Green (60,200,80)
         let t = (acc - 0.5) * 2.0;
-        (
-            220.0 - t * 160.0,
-            200.0,
-            60.0 + t * 20.0,
-        )
+        (220.0 - t * 160.0, 200.0, 60.0 + t * 20.0)
     };
     format!("rgb({:.0},{:.0},{:.0})", r, g, b)
 }

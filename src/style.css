@@ -208,30 +208,71 @@ html, body {
     background: var(--bg-canvas);
 }
 
-/* Main content area — CSS grid for proper proportioning */
+/* Main content area — tabbed viz on top, knowledge chart below */
 .main-content {
     flex: 1;
     display: grid;
-    grid-template-rows: 1fr auto minmax(140px, 0.35fr) auto;
+    grid-template-rows: auto 1fr minmax(160px, 0.4fr) auto;
     overflow: hidden;
     padding: 4px 8px;
     background: var(--bg-panel);
     gap: 4px;
 }
 
-.diagram-area {
+/* View tabs */
+.view-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--separator);
+    padding: 0 4px;
+}
+
+.view-tab {
+    padding: 6px 16px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 13px;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.view-tab:hover:not(.disabled) {
+    color: var(--text-primary);
+}
+
+.view-tab.active {
+    color: var(--text-primary);
+    font-weight: 600;
+    border-bottom-color: var(--env-label);
+}
+
+.view-tab.disabled {
+    color: var(--text-dim);
+    opacity: 0.4;
+    cursor: default;
+}
+
+/* Visualization area — takes the full main panel */
+.viz-area {
     min-height: 200px;
     overflow: hidden;
 }
 
+.diagram-area {
+    width: 100%;
+    height: 100%;
+}
+
 .chart-area {
-    min-height: 180px;
+    min-height: 160px;
     overflow: hidden;
 }
 
 .footer-area {
     overflow-y: auto;
-    max-height: 160px;
+    max-height: 120px;
 }
 
 /* ALES loop SVG */
@@ -505,9 +546,8 @@ html, body {
 
 /* Agent canvas (ABM mode) */
 .agent-area {
-    min-height: 160px;
-    max-height: 260px;
-    overflow: hidden;
+    width: 100%;
+    height: 100%;
 }
 
 .agent-canvas-container {
