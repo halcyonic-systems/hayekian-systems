@@ -29,6 +29,10 @@ pub struct StructuralParams {
     /// Broken = one or more links severed; the loop cannot self-maintain.
     /// (Piaget's closure concept, formalized by Rosen as closure to efficient causation.)
     pub process_closure: f32,
+
+    /// How unpredictable the environment is. 0 = perfectly stable,
+    /// 1 = highly volatile. Introduces periodic noise shocks to knowledge.
+    pub env_volatility: f32,
 }
 
 impl Default for StructuralParams {
@@ -38,6 +42,7 @@ impl Default for StructuralParams {
             innovation_freedom: 0.8,
             feedback_fidelity: 0.8,
             process_closure: 1.0,
+            env_volatility: 0.0,
         }
     }
 }

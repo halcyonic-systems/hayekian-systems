@@ -1,4 +1,5 @@
 use super::params::StructuralParams;
+use super::rng::Rng;
 
 /// The state of a running anticipatory system.
 /// Knowledge quality is the key emergent variable — it rises or falls
@@ -17,6 +18,8 @@ pub struct SystemState {
     pub process_activation: [f32; 4],
     /// Flow strengths between processes in loop order: [E→S, S→A, A→L, L→E].
     pub flow_strengths: [f32; 4],
+    /// PRNG for environmental noise.
+    pub rng: Rng,
 }
 
 /// The four processes of the anticipatory loop, in McQuade's Figure 5.2 order.
@@ -64,6 +67,7 @@ impl Default for SystemState {
             knowledge_history: vec![0.3],
             process_activation: [0.5; 4],
             flow_strengths: [1.0; 4],
+            rng: Rng::new(42),
         }
     }
 }
@@ -113,12 +117,19 @@ impl SystemState {
                 self.process_activation[i] * inertia + target * (1.0 - inertia);
         }
 
-        // Knowledge dynamics: the key emergent variable.
+        // Knowledge dynamics: logistic growth toward asymptotic cap.
+        // delta = rate * k * (1 - k) * dt — S-curve, never reaches 1.0.
         let rate = self.params.knowledge_rate();
-        let knowledge_delta = rate * dt * 0.3; // scaled for reasonable dynamics
+        let k = self.knowledge_quality;
+        let knowledge_delta = rate * k * (1.0 - k) * dt;
 
-        // Knowledge has inertia and bounds.
-        self.knowledge_quality = (self.knowledge_quality + knowledge_delta).clamp(0.0, 1.0);
+        self.knowledge_quality = (k + knowledge_delta).clamp(0.0, 1.0);
+
+        // Environmental noise: periodic shocks proportional to volatility.
+        if self.params.env_volatility > 0.0 {
+            let noise = self.rng.next_normal() * self.params.env_volatility * 0.02;
+            self.knowledge_quality = (self.knowledge_quality + noise).clamp(0.0, 1.0);
+        }
 
         // Record history (keep last 300 points).
         self.knowledge_history.push(self.knowledge_quality);
@@ -134,5 +145,6 @@ impl SystemState {
         self.knowledge_history = vec![0.3];
         self.process_activation = [0.5; 4];
         self.flow_strengths = [1.0; 4];
+        self.rng = Rng::new(42);
     }
 }

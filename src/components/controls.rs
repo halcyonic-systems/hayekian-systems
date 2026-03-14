@@ -71,6 +71,12 @@ pub fn ParameterControls(
                 value=Signal::derive(move || state.get().params.process_closure)
                 set_value=move |v| state.update(|s| s.params.process_closure = v)
             />
+            <ParamSlider
+                label=Signal::derive(|| "Env. Volatility".to_string())
+                tooltip=Signal::derive(|| "How unpredictable the environment is. At 0 the environment is perfectly stable; at 1 it delivers frequent shocks that can degrade knowledge quality.".to_string())
+                value=Signal::derive(move || state.get().params.env_volatility)
+                set_value=move |v| state.update(|s| s.params.env_volatility = v)
+            />
         </div>
 
         <hr class="section-sep" />
