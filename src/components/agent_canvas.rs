@@ -130,13 +130,13 @@ pub fn AgentCanvas(
                             />
                             <text x=gt_x y={pad_t + plot_h + 28.0}
                                 fill=accent_css.clone() font-size="9" text-anchor="middle" font-weight="600">
-                                {format!("\u{25B2} Env: {:.2}", gt)}
+                                {format!("\u{25B2} Reality ({:.2})", gt)}
                             </text>
 
                             // Title row: chart title left, stats right
                             <text x=pad_l y={pad_t - 14.0}
                                 fill="var(--text-primary)" font-size="13" font-weight="600">
-                                "Belief Distribution"
+                                "What Agents Believe vs. Reality"
                             </text>
                             <text x={pad_l + plot_w} y={pad_t - 14.0}
                                 fill="var(--text-secondary)" font-size="11" text-anchor="end">
