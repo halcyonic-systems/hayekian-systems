@@ -120,9 +120,18 @@ pub fn AgentCanvas(
                             // Histogram bars
                             {bars}
 
-                            // Environment state marker (in front of bars)
-                            <line x1=gt_x y1={pad_t - 2.0} x2=gt_x y2={pad_t + plot_h}
-                                stroke=accent_css.clone() stroke-width="2" stroke-dasharray="6 3" />
+                            // Environment state: triangle marker on x-axis + label
+                            <polygon
+                                points=format!("{},{} {},{} {},{}",
+                                    gt_x, pad_t + plot_h - 8.0,
+                                    gt_x - 5.0, pad_t + plot_h + 1.0,
+                                    gt_x + 5.0, pad_t + plot_h + 1.0)
+                                fill=accent_css.clone()
+                            />
+                            <text x=gt_x y={pad_t + plot_h + 28.0}
+                                fill=accent_css.clone() font-size="9" text-anchor="middle" font-weight="600">
+                                {format!("\u{25B2} Env: {:.2}", gt)}
+                            </text>
 
                             // Title row: chart title left, stats right
                             <text x=pad_l y={pad_t - 14.0}
@@ -133,12 +142,6 @@ pub fn AgentCanvas(
                                 fill="var(--text-secondary)" font-size="11" text-anchor="end">
                                 {format!("{} agents  \u{00B7}  {:.0}% transacting  \u{00B7}  mean accuracy {:.0}%",
                                     state.agents.len(), tx_pct, mean_acc * 100.0)}
-                            </text>
-
-                            // Env state label (near the marker line)
-                            <text x={gt_x + 6.0} y={pad_t + 14.0}
-                                fill=accent_css font-size="10" font-weight="500">
-                                {format!("Env. state: {:.2}", gt)}
                             </text>
 
                             // X-axis
