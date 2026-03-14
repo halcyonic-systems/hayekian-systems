@@ -133,17 +133,17 @@ impl AbmState {
             i += 2;
 
             // Closure gate: can this pair find each other?
-            if self.rng.next_f32() > self.interaction_probability {
-                // Pair blocked — both get passive learning
-                // We need to split borrows carefully
+            let closure = self.interaction_probability;
+            if self.rng.next_f32() > closure {
+                // Pair blocked — both get passive observation (gated by closure)
                 let (lo, hi) = if idx_a < idx_b {
                     (idx_a, idx_b)
                 } else {
                     (idx_b, idx_a)
                 };
                 let (left, right) = self.agents.split_at_mut(hi);
-                left[lo].passive_observe(gt, &mut self.rng);
-                right[0].passive_observe(gt, &mut self.rng);
+                left[lo].passive_observe(gt, closure, &mut self.rng);
+                right[0].passive_observe(gt, closure, &mut self.rng);
                 continue;
             }
 
@@ -157,14 +157,14 @@ impl AbmState {
             let agent_a = &mut left[lo];
             let agent_b = &mut right[0];
 
-            // Pre-compute partner accuracies before mutable borrows in ales_step
             let acc_a = agent_a.belief_accuracy(gt);
             let acc_b = agent_b.belief_accuracy(gt);
             let id_a = agent_a.id;
             let id_b = agent_b.id;
+            let fidelity = params.feedback_fidelity;
 
-            let result_a = agent_a.ales_step(gt, acc_b, id_b, &mut self.rng);
-            let result_b = agent_b.ales_step(gt, acc_a, id_a, &mut self.rng);
+            let result_a = agent_a.ales_step(gt, acc_b, id_b, fidelity, &mut self.rng);
+            let result_b = agent_b.ales_step(gt, acc_a, id_a, fidelity, &mut self.rng);
 
             if result_a.is_some() {
                 transacted_count += 1;
@@ -174,10 +174,11 @@ impl AbmState {
             }
         }
 
-        // 6. Unpaired agent (odd count) gets passive learning
+        // 6. Unpaired agent (odd count) gets passive observation
         if n % 2 == 1 {
             let last_idx = order[n - 1];
-            self.agents[last_idx].passive_observe(gt, &mut self.rng);
+            let closure = self.interaction_probability;
+            self.agents[last_idx].passive_observe(gt, closure, &mut self.rng);
         }
 
         // 7. Collect aggregates into history

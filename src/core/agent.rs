@@ -64,23 +64,31 @@ impl Agent {
         ground_truth: f32,
         partner_accuracy: f32,
         partner_id: u16,
+        feedback_fidelity: f32,
         rng: &mut Rng,
     ) -> Option<bool> {
         // --- E phase: Form expectation ---
-        // Perceived signal = ground_truth filtered by perception (noisy observation)
-        let perceived_signal = ground_truth + (1.0 - self.perception) * rng.next_normal() * 0.3;
-        // Expectation = beliefs (60%) + perceived signal (40%) + creativity noise
+        // Perceived signal = ground_truth heavily filtered by perception.
+        // Low perception = agent mostly sees its own beliefs reflected back.
+        let env_weight = self.perception * 0.5; // at best, 50% env signal
+        let perceived_signal = ground_truth * env_weight
+            + self.beliefs * (1.0 - env_weight)
+            + (1.0 - self.perception) * rng.next_normal() * 0.3;
+        // Expectation blends beliefs with perceived signal + creativity noise.
+        // Creativity generates hypotheses — useful with feedback, dangerous without.
         let expectation = self.beliefs * 0.6
             + perceived_signal * 0.4
             + self.creativity * rng.next_normal() * 0.1;
         self.last_expectation = expectation;
 
         // --- S phase: Evaluate opportunity ---
-        // Perceived opportunity depends on how well agent senses the environment.
-        // Skip if opportunity seems too low (perception-dependent threshold).
         let perceived_opportunity = self.perception * partner_accuracy;
-        let threshold = 0.2 + (1.0 - self.perception) * 0.3; // better perception → lower threshold
+        let threshold = 0.2 + (1.0 - self.perception) * 0.3;
         if perceived_opportunity < threshold {
+            // Creativity still causes belief drift even when not transacting —
+            // untested hypotheses accumulate as noise.
+            self.beliefs += self.creativity * rng.next_normal() * 0.015;
+            self.beliefs = self.beliefs.clamp(0.0, 1.0);
             self.transacted_this_step = false;
             self.last_partner = None;
             return None;
@@ -90,30 +98,39 @@ impl Agent {
         self.transacted_this_step = true;
         self.last_partner = Some(partner_id);
 
-        // Success probability = joint belief accuracy (both need good models)
         let my_accuracy = self.belief_accuracy(ground_truth);
         let joint_accuracy = (my_accuracy * partner_accuracy).sqrt();
         let success = rng.next_f32() < joint_accuracy;
 
+        // --- L phase: Update beliefs from transaction outcome ---
+        // feedback_fidelity controls SIGNAL QUALITY, not just speed.
+        // Low fidelity = the signal is systematically distorted.
         if success {
-            // Both gain wealth proportional to individual accuracy
             self.wealth += my_accuracy * 0.05;
-            // Clean signal from successful transaction: ground truth revealed
-            let signal = ground_truth;
-            // --- L phase: Update beliefs toward clean signal ---
-            self.beliefs += self.learning_rate * (signal - self.beliefs) * 0.3;
+            // Signal quality depends on feedback fidelity: how much of the true
+            // outcome reaches the agent vs. noise/distortion.
+            let signal = ground_truth * feedback_fidelity
+                + self.beliefs * (1.0 - feedback_fidelity)
+                + (1.0 - feedback_fidelity) * rng.next_normal() * 0.2;
+            self.beliefs += self.learning_rate * (signal - self.beliefs) * 0.25;
         } else {
-            // Small wealth loss on failure
             self.wealth = (self.wealth - 0.02).max(0.01);
-            // Noisy signal from failed transaction
-            let noisy_signal = ground_truth + rng.next_normal() * 0.4;
-            // --- L phase: Update beliefs toward noisy signal (slower) ---
-            self.beliefs += self.learning_rate * (noisy_signal - self.beliefs) * 0.1;
+            // Failed transactions produce misleading signals — biased away
+            // from truth, not just noisy around it. The worse the fidelity,
+            // the more the agent learns the wrong lesson.
+            let bias = (1.0 - feedback_fidelity) * rng.next_normal() * 0.5;
+            let signal = ground_truth * feedback_fidelity * 0.5
+                + self.beliefs * (1.0 - feedback_fidelity * 0.5)
+                + bias;
+            self.beliefs += self.learning_rate * (signal - self.beliefs) * 0.08;
         }
 
+        // Creativity-driven drift: even during transactions, the agent's
+        // hypothesis generation perturbs beliefs slightly. Good feedback
+        // corrects this; bad feedback lets it accumulate.
+        self.beliefs += self.creativity * rng.next_normal() * 0.008;
         self.beliefs = self.beliefs.clamp(0.0, 1.0);
 
-        // Record accuracy history
         let acc = self.belief_accuracy(ground_truth);
         self.belief_history.push(acc);
         if self.belief_history.len() > 60 {
@@ -123,12 +140,28 @@ impl Agent {
         Some(success)
     }
 
-    /// Passive learning — agent observes environment without transacting.
-    /// Small belief update toward perceived signal.
-    pub fn passive_observe(&mut self, ground_truth: f32, rng: &mut Rng) {
-        let perceived = ground_truth + (1.0 - self.perception) * rng.next_normal() * 0.4;
-        self.beliefs += self.learning_rate * (perceived - self.beliefs) * 0.05;
+    /// Passive observation — no transaction partner available.
+    /// Without the full ALES loop, learning is severely limited.
+    /// `closure` gates whether companion processes even support observation.
+    pub fn passive_observe(&mut self, ground_truth: f32, closure: f32, rng: &mut Rng) {
+        // Without closure, companion processes can't support observation —
+        // the agent is structurally cut off, not just missing a partner.
+        let effective_perception = self.perception * closure;
+
+        if effective_perception > 0.1 {
+            // Faint signal, mostly the agent's own beliefs reflected back
+            let signal = ground_truth * effective_perception * 0.3
+                + self.beliefs * (1.0 - effective_perception * 0.3)
+                + (1.0 - effective_perception) * rng.next_normal() * 0.3;
+            self.beliefs += self.learning_rate * (signal - self.beliefs) * 0.02;
+        }
+
+        // Creativity causes belief drift — hypotheses generated without
+        // any testing mechanism. The less closure, the more drift dominates.
+        let drift_scale = self.creativity * (1.0 - closure * 0.5);
+        self.beliefs += drift_scale * rng.next_normal() * 0.02;
         self.beliefs = self.beliefs.clamp(0.0, 1.0);
+
         self.transacted_this_step = false;
         self.last_partner = None;
 
