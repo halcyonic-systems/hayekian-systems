@@ -1,4 +1,5 @@
 use super::{DomainConfig, palette_market, palette_firm, palette_banking};
+use crate::core::params::StructuralParams;
 
 /// Market system (Ch 6, Figure 6.1).
 /// Innovation → Judgment → Production → Exchange.
@@ -44,6 +45,13 @@ pub fn market_system() -> DomainConfig {
         output_description: "Goods and services produced\nand offered for exchange in\nthe market environment.",
         env_input_label: "Resources & Feedback (I)",
         hampered_processes: [false; 4],
+        default_params: Some(StructuralParams {
+            environmental_coupling: 0.90,
+            innovation_freedom: 0.85,
+            feedback_fidelity: 0.80,
+            process_closure: 0.95,
+            env_volatility: 0.15,
+        }),
     }
 }
 
@@ -91,6 +99,13 @@ pub fn firm_system() -> DomainConfig {
         output_description: "Products, services, and market\ncommunications offered to\ncustomers and suppliers.",
         env_input_label: "Market Feedback (I)",
         hampered_processes: [false; 4],
+        default_params: Some(StructuralParams {
+            environmental_coupling: 0.80,
+            innovation_freedom: 0.75,
+            feedback_fidelity: 0.75,
+            process_closure: 0.90,
+            env_volatility: 0.10,
+        }),
     }
 }
 
@@ -139,5 +154,12 @@ pub fn free_banking_system() -> DomainConfig {
         output_description: "Banking services, loans, and\nmonetary instruments issued\nto the market environment.",
         env_input_label: "Redemptions & Feedback (I)",
         hampered_processes: [false; 4],
+        default_params: Some(StructuralParams {
+            environmental_coupling: 0.85,
+            innovation_freedom: 0.70,
+            feedback_fidelity: 0.85,
+            process_closure: 0.90,
+            env_volatility: 0.10,
+        }),
     }
 }

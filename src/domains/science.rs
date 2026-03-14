@@ -1,4 +1,5 @@
 use super::{DomainConfig, palette_science};
+use crate::core::params::StructuralParams;
 
 /// Science system (Ch 7, Figure 7.1).
 /// Anticipation → Judgment → Investigation → Assessment.
@@ -44,5 +45,12 @@ pub fn science_system() -> DomainConfig {
         output_description: "Experimental probing of the\nnatural environment — the\nsystem's distinctive output\nthat generates empirical feedback.",
         env_input_label: "Empirical Feedback (I)",
         hampered_processes: [false; 4],
+        default_params: Some(StructuralParams {
+            environmental_coupling: 0.95,
+            innovation_freedom: 0.80,
+            feedback_fidelity: 0.90,
+            process_closure: 0.85,
+            env_volatility: 0.05,
+        }),
     }
 }

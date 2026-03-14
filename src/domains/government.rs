@@ -1,4 +1,5 @@
 use super::{DomainConfig, palette_legislature, palette_bureaucracy};
+use crate::core::params::StructuralParams;
 
 /// Legislature system (Ch 8, Figure 8.1).
 /// Political Entrepreneurship → Resolution → Drafting → Engagement.
@@ -44,6 +45,13 @@ pub fn legislature_system() -> DomainConfig {
         output_description: "Communication to constituents\nshaping political preferences —\nthe legislature modifies the very\nenvironment that constrains it.",
         env_input_label: "Constituent Preferences (I)",
         hampered_processes: [false; 4],
+        default_params: Some(StructuralParams {
+            environmental_coupling: 0.40,
+            innovation_freedom: 0.70,
+            feedback_fidelity: 0.35,
+            process_closure: 0.80,
+            env_volatility: 0.30,
+        }),
     }
 }
 
@@ -92,5 +100,12 @@ pub fn bureaucracy_system() -> DomainConfig {
         output_description: "Agency services, regulatory\nactions, and operations\ndelivered to clients and\nthe public.",
         env_input_label: "Directives & Feedback (I)",
         hampered_processes: [true, true, false, false],
+        default_params: Some(StructuralParams {
+            environmental_coupling: 0.30,
+            innovation_freedom: 0.30,
+            feedback_fidelity: 0.50,
+            process_closure: 0.70,
+            env_volatility: 0.25,
+        }),
     }
 }

@@ -6,7 +6,7 @@
 /// concept of "anchor to environment" — how firmly the system is tied to
 /// external reality it cannot manipulate. That domain-specific language
 /// replaces `environmental_coupling` in later chapters.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct StructuralParams {
     /// How strongly the system's processes are coupled to environmental input.
     /// Strong coupling = system receives and responds to external feedback.

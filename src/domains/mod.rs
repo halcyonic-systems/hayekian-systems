@@ -78,6 +78,10 @@ pub struct DomainConfig {
     /// Which processes are "hampered" by external constraint (drawn with dashed border).
     /// Bureaucracy has Innovation and Judgment hampered. Default: all false.
     pub hampered_processes: [bool; 4],
+
+    /// Domain-specific default structural parameters encoding McQuade's theoretical claims.
+    /// If None, uses StructuralParams::default().
+    pub default_params: Option<crate::core::params::StructuralParams>,
 }
 
 /// Blue-grey palette — neutral, theoretical (Ch 5 abstract template).
@@ -206,5 +210,6 @@ pub fn abstract_system() -> DomainConfig {
         output_description: "The system's actions directed at\nthe environment, generating\nconsequences that feed back\ninto learning.",
         env_input_label: "Env Input (I)",
         hampered_processes: [false; 4],
+        default_params: None,
     }
 }

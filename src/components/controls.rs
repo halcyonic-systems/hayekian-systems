@@ -1,6 +1,5 @@
 use leptos::prelude::*;
 use crate::Domain;
-use crate::core::params::StructuralParams;
 use crate::core::system::SystemState;
 use crate::domains::DomainConfig;
 
@@ -26,7 +25,12 @@ pub fn ParameterControls(
                             checked=is_selected
                             on:change=move |_| {
                                 set_domain.set(d);
-                                // Reset state when switching domains
+                                let cfg = d.config();
+                                state.update(|s| {
+                                    s.params = cfg.default_params
+                                        .unwrap_or_default();
+                                    s.reset();
+                                });
                             }
                         />
                         {d.label()}
@@ -86,8 +90,10 @@ pub fn ParameterControls(
                 {move || if running.get() { "\u{23F8} Pause" } else { "\u{25B6} Run" }}
             </button>
             <button on:click=move |_| {
+                let cfg = domain.get().config();
                 state.update(|s| {
-                    s.params = StructuralParams::default();
+                    s.params = cfg.default_params
+                        .unwrap_or_default();
                     s.reset();
                 });
                 set_running.set(false);
