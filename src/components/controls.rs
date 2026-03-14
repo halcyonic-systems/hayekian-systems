@@ -64,7 +64,10 @@ pub fn ParameterControls(
 
         <hr class="section-sep" />
 
-        <h3>"Structural Parameters"</h3>
+        <h3>{move || match sim_mode.get() {
+            SimMode::Abm => "Structural Parameters (population means)",
+            SimMode::Explorer => "Structural Parameters",
+        }}</h3>
         <div class="param-group">
             <ParamSlider
                 label=Signal::derive(move || domain_config.get().coupling_label.to_string())

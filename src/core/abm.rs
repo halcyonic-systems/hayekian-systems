@@ -84,10 +84,13 @@ impl AbmState {
             })
             .collect();
 
+        // Ground truth starts at a random position — agents must discover it.
+        let ground_truth = rng.next_f32() * 0.6 + 0.2; // [0.2, 0.8]
+
         Self {
             agents,
             env: Environment {
-                ground_truth: 0.5,
+                ground_truth,
                 volatility: params.env_volatility,
             },
             rng,

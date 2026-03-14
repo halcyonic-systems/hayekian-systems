@@ -33,7 +33,7 @@ impl Agent {
         let clamp01 = |v: f32| v.clamp(0.05, 0.95);
         Self {
             id,
-            beliefs: clamp01(0.5 + rng.next_normal() * 0.2), // start with vague beliefs
+            beliefs: clamp01(rng.next_f32() * 0.8 + 0.1), // uniform ignorance — no prior
             creativity: clamp01(innovation + rng.next_normal() * 0.1),
             perception: clamp01(coupling + rng.next_normal() * 0.1),
             learning_rate: clamp01(fidelity + rng.next_normal() * 0.1),

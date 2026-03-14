@@ -59,7 +59,7 @@ pub fn AgentCanvas(
                         let r = 4.0 + agent.wealth.clamp(0.0, 4.0) * 2.0; // radius 4-12
                         let fill = accuracy_color(acc);
                         let title = format!(
-                            "Agent {} | Beliefs: {:.2} | Accuracy: {:.0}% | Wealth: {:.2} | Perception: {:.0}%",
+                            "Agent {} | K (beliefs): {:.2} | Accuracy: {:.0}% | Wealth: {:.2} | Env. coupling: {:.0}%",
                             agent.id,
                             agent.beliefs,
                             acc * 100.0,
@@ -96,7 +96,7 @@ pub fn AgentCanvas(
                                 stroke="var(--env-stroke)" stroke-width="1.5" stroke-dasharray="4 3" />
                             <text x=gt_x y={pad - 6.0}
                                 fill="var(--env-label)" font-size="9" text-anchor="middle">
-                                "Ground Truth"
+                                "Environment State"
                             </text>
 
                             // Transaction lines
@@ -108,12 +108,12 @@ pub fn AgentCanvas(
                             // Axis labels
                             <text x={pad + plot_w / 2.0} y={vb_h - 4.0}
                                 fill="var(--text-dim)" font-size="10" text-anchor="middle">
-                                "Beliefs"
+                                "Agent Knowledge (K)"
                             </text>
                             <text x="8" y={pad + plot_h / 2.0}
                                 fill="var(--text-dim)" font-size="10" text-anchor="middle"
                                 transform=format!("rotate(-90, 8, {})", pad + plot_h / 2.0)>
-                                "Perception"
+                                "Env. Coupling"
                             </text>
 
                             // Scale labels

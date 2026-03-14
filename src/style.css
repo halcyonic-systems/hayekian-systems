@@ -125,6 +125,13 @@ html, body {
     border-color: var(--env-label);
 }
 
+.mode-description {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.4;
+    margin-bottom: 2px;
+}
+
 /* Domain selector */
 .domain-list {
     display: flex;

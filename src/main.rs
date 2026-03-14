@@ -93,9 +93,14 @@ fn App() -> impl IntoView {
     let (running, set_running) = signal(false);
     let (light_mode, set_light_mode) = signal(true);
     let (speed, set_speed) = signal(0.05_f32);
-    let (sim_mode, set_sim_mode) = signal(SimMode::Explorer);
-    let (abm_state, set_abm_state) = signal::<Option<AbmState>>(None);
+    let (sim_mode, set_sim_mode) = signal(SimMode::Abm);
     let (agent_count, set_agent_count) = signal(30u16);
+
+    // Initialize ABM state at startup — ABM is the primary mode.
+    let initial_abm = AbmState::new(30, &state.get_untracked().params, 42);
+    let initial_projected = initial_abm.to_system_state(&state.get_untracked().params);
+    state.set(initial_projected);
+    let (abm_state, set_abm_state) = signal::<Option<AbmState>>(Some(initial_abm));
 
     // Animation loop using request_animation_frame
     let anim_running = running;
@@ -123,7 +128,23 @@ fn App() -> impl IntoView {
 
                 <div class="mode-toggle">
                     <button
+                        class=move || if sim_mode.get() == SimMode::Abm { "mode-btn active" } else { "mode-btn" }
+                        title="Agents execute ALES micro-cycles — system knowledge emerges from individual transactions"
+                        on:click=move |_| {
+                            set_sim_mode.set(SimMode::Abm);
+                            let s = state.get_untracked();
+                            let abm = AbmState::new(agent_count.get_untracked(), &s.params, 42);
+                            let projected = abm.to_system_state(&s.params);
+                            state.set(projected);
+                            set_abm_state.set(Some(abm));
+                            set_running.set(false);
+                        }
+                    >
+                        "Agents"
+                    </button>
+                    <button
                         class=move || if sim_mode.get() == SimMode::Explorer { "mode-btn active" } else { "mode-btn" }
+                        title="Equation-driven view of the same structural dynamics — the aggregate that agent interactions produce"
                         on:click=move |_| {
                             set_sim_mode.set(SimMode::Explorer);
                             set_abm_state.set(None);
@@ -135,22 +156,14 @@ fn App() -> impl IntoView {
                             set_running.set(false);
                         }
                     >
-                        "Explorer"
+                        "Equations"
                     </button>
-                    <button
-                        class=move || if sim_mode.get() == SimMode::Abm { "mode-btn active" } else { "mode-btn" }
-                        on:click=move |_| {
-                            set_sim_mode.set(SimMode::Abm);
-                            let s = state.get_untracked();
-                            let abm = AbmState::new(agent_count.get_untracked(), &s.params, 42);
-                            let projected = abm.to_system_state(&s.params);
-                            state.set(projected);
-                            set_abm_state.set(Some(abm));
-                            set_running.set(false);
-                        }
-                    >
-                        "Agent Simulation"
-                    </button>
+                </div>
+                <div class="mode-description">
+                    {move || match sim_mode.get() {
+                        SimMode::Abm => "Individual agents run ALES micro-cycles. Sliders set population distributions.",
+                        SimMode::Explorer => "Aggregate view of the same loop dynamics. Sliders directly drive equations.",
+                    }}
                 </div>
 
                 <hr class="section-sep" />
