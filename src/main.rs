@@ -247,9 +247,16 @@ fn App() -> impl IntoView {
                             target="_blank"
                             rel="noopener"
                         >
-                            <em>"Hayekian Systems: Research into the Structure of Social Interaction"</em>
+                            <em>"Hayekian Systems"</em>
                         </a>
-                        " (Routledge)"
+                        " (Routledge) · "
+                        <a
+                            href="https://github.com/halcyonic-systems/hayekian-systems"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            "Source on GitHub"
+                        </a>
                     </div>
                 </div>
             </div>
