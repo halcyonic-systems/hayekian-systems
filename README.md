@@ -51,6 +51,17 @@ Seven instantiations from Chapters 5–8, each with McQuade's process labels:
 - Run a healthy system, then spike Env. Volatility — well-coupled systems recover, insulated ones don't
 - In ABM mode, lower Process Closure gradually and watch agents drift from ground truth
 
+## Known Limitations & Open Questions
+
+The simulation captures the ALES loop structure but the agent dynamics need grounding in the theory. Several areas where domain expertise would sharpen the model:
+
+- **Knowledge converges too fast and too completely.** Under healthy parameters, agents reach near-perfect knowledge quickly. Real institutional learning has friction, forgetting, and structural ceilings that vary by domain. The convergence dynamics need rethinking — possibly bounded rationality constraints, knowledge depreciation, or domain-specific carrying capacities.
+- **Agent interaction model is underspecified.** Agents currently pair randomly and learn from transaction success/failure. McQuade's framework implies richer structure: different transaction types, varying agent capabilities within each ALES process, and institutional constraints on who can transact with whom.
+- **Environment model is too simple.** Environmental state is a single scalar with optional noise. Real environments are multi-dimensional, partially observable, and shift in ways that differ across domains (resource shocks vs. preference drift vs. paradigm shifts).
+- **Cross-domain structural differences need calibration.** Each domain has different default parameters, but these were set heuristically rather than derived from the theory's claims about *why* certain institutions learn better than others.
+
+If any of this is interesting to you, issues and conversations are welcome.
+
 ## Running Locally
 
 Requires [Rust](https://rustup.rs/) and [Trunk](https://trunkrs.dev/):
